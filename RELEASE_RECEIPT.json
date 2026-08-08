@@ -4,8 +4,8 @@
   "artifact": "sovereign-agent-starter",
   "release_version": "v0.1.0-alpha",
   "package_version": "0.1.0a0",
-  "status": "QUALIFIED_FOR_PRIVATE_STAGING",
-  "qualified_at": "2026-08-08T20:05:24.067364+00:00",
+  "status": "APPROVED_FOR_PUBLIC_RELEASE",
+  "qualified_at": "2026-08-08T20:08:14.366307+00:00",
   "qualification": {
     "tests": {
       "status": "PASS",
@@ -16,7 +16,7 @@
     "synthetic_end_to_end": "PASS",
     "source_secret_pattern_scan": "PASS",
     "private_implementation_reference_scan": "PASS",
-    "git_history_gitleaks": "PENDING_AFTER_GIT_STAGING",
+    "git_history_gitleaks": "PASS",
     "license": "Apache-2.0",
     "synthetic_examples_only": true
   },
@@ -49,8 +49,8 @@
     "tests/test_starter.py": "a4ce9b6922b8299d645ed2be74c5b85df904b2a361c2dd784018634d0474a34c"
   },
   "limitations": [
-    "Private staging only until Git-history gitleaks and remote-head verification pass.",
-    "This public extraction does not grant Neuruh production authority.",
+    "This is a bounded Public Commons Active Alpha component, not Neuruh production authority.",
     "Active Alpha interfaces may change."
-  ]
+  ],
+  "tested_source_commit": "4db56c73f0b109907afabdfebeb6afa0b9be72e2"
 }
