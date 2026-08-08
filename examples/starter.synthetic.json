@@ -1,0 +1,74 @@
+{
+  "schema_version": "neuruh.sovereign-agent-starter.v0.1",
+  "agent_id": "synthetic-agent",
+  "mission": "Demonstrate one bounded governed execution",
+  "sandbox_root": ".",
+  "policy": {
+    "policy_id": "synthetic-policy",
+    "blocked_domains": [],
+    "allowed_tools": [
+      "demo.print"
+    ],
+    "approval_tags": [
+      "human_approval"
+    ],
+    "max_spend": 0
+  },
+  "capability_manifest": {
+    "schema_version": "neuruh.capability-registry.v0.1",
+    "capabilities": [
+      {
+        "operation": "demo.print",
+        "kind": "process",
+        "requires_receipt": true,
+        "requires_precondition": false,
+        "allowed_target_types": [
+          "stdout"
+        ],
+        "arg_schema": {
+          "label": {
+            "type": "string",
+            "required": true,
+            "max_length": 64
+          }
+        }
+      }
+    ]
+  },
+  "inference": {
+    "backends": [
+      {
+        "name": "local-optional",
+        "kind": "local",
+        "base_url": "http://127.0.0.1:11434",
+        "model": "example-local",
+        "health_paths": [
+          "/v1/models",
+          "/api/tags"
+        ]
+      }
+    ],
+    "required": false,
+    "prompt": null,
+    "timeout_seconds": 0.25
+  },
+  "action": {
+    "action_id": "action-001",
+    "domain": "synthetic.demo",
+    "operation": "demo.print",
+    "args": {
+      "label": "public-demo"
+    },
+    "tags": [],
+    "spend": 0
+  },
+  "execution_binding": {
+    "operation": "demo.print",
+    "bin": "/usr/bin/printf",
+    "argv": [
+      "SOVEREIGN_RUN_OK\\n"
+    ],
+    "cwd": "."
+  },
+  "dry_run": false
+}

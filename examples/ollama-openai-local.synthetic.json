@@ -1,0 +1,63 @@
+{
+  "schema_version": "neuruh.sovereign-agent-starter.v0.1",
+  "agent_id": "local-agent",
+  "mission": "Observe a local model then perform one predeclared action",
+  "sandbox_root": ".",
+  "policy": {
+    "policy_id": "local-demo",
+    "blocked_domains": [],
+    "allowed_tools": [
+      "demo.print"
+    ],
+    "approval_tags": [],
+    "max_spend": 0
+  },
+  "capability_manifest": {
+    "schema_version": "neuruh.capability-registry.v0.1",
+    "capabilities": [
+      {
+        "operation": "demo.print",
+        "kind": "process",
+        "requires_receipt": true,
+        "requires_precondition": false,
+        "allowed_target_types": [
+          "stdout"
+        ],
+        "arg_schema": {}
+      }
+    ]
+  },
+  "inference": {
+    "backends": [
+      {
+        "name": "ollama-local",
+        "kind": "local",
+        "base_url": "http://127.0.0.1:11434",
+        "model": "llama3.2",
+        "health_paths": [
+          "/api/tags"
+        ]
+      }
+    ],
+    "required": true,
+    "prompt": "Reply with exactly LOCAL_MODEL_OK",
+    "timeout_seconds": 2.0
+  },
+  "action": {
+    "action_id": "action-local-001",
+    "domain": "synthetic.demo",
+    "operation": "demo.print",
+    "args": {},
+    "tags": [],
+    "spend": 0
+  },
+  "execution_binding": {
+    "operation": "demo.print",
+    "bin": "/usr/bin/printf",
+    "argv": [
+      "GOVERNED_EXEC_OK\\n"
+    ],
+    "cwd": "."
+  },
+  "dry_run": false
+}
