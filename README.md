@@ -1,5 +1,7 @@
 # Neuruh Sovereign Agent Starter
 
+[![ci](https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/actions/workflows/ci.yml)
+
 A runnable reference agent composed from the Neuruh Public Commons libraries.
 
 It demonstrates a governed run in which model output is evidence, never command authority:
@@ -14,6 +16,12 @@ mission
   -> evidence + Agent Receipt chain
   -> sealed Agent Run Manifest
 ```
+
+## Requirements
+
+Python 3.11 or newer. No API key, no account, and no model server.
+
+Installing needs network access to fetch the pinned dependencies from GitHub. The example run itself makes no network calls.
 
 ## Install
 
@@ -77,6 +85,61 @@ to the exact releases that produced it.
 For local inference, set `inference.required` to `true`, provide a loopback
 OpenAI-compatible backend, and add a prompt. Remote inference endpoints are rejected at the
 configuration boundary — see `examples/ollama-openai-local.synthetic.json`.
+
+## What just happened
+
+The run produced two artifacts. Both are readable, and neither depends on trusting the
+agent that wrote them.
+
+`receipts.jsonl` is a hash-chained ledger, one JSON object per line:
+
+| `seq` | `receipt_type` | `authority` | Records |
+| --- | --- | --- | --- |
+| 0 | `decision` | `governance-decision` | the policy gate returned `allow`, with the policy version derived from the policy content itself |
+| 1 | `observation` | `observation` | the inference health probe result — here `unavailable`, because nothing was listening on the loopback backend |
+| 2 | `execution` | `execution-evidence` | the exact command that ran and the digest of its output |
+
+Each entry carries `prev_hash` and `entry_hash`. Entry 0 chains from a fixed genesis
+constant, entry 1 chains from entry 0, entry 2 from entry 1. That is what `verify` walks.
+
+`manifest.json` seals the run: mission, inputs, decisions, executions, evidence, the
+receipt tip, and a `manifest_digest` over the whole thing. Its `components` list is read
+from installed distribution metadata rather than hard-coded, so it records the exact
+released version of everything that actually ran:
+
+```json
+[
+  {"name": "neuruh-agent-run-manifest",      "version": "0.1.2a0"},
+  {"name": "neuruh-agent-receipt",           "version": "0.1.2a0"},
+  {"name": "neuruh-governed-exec",           "version": "0.1.2a0"},
+  {"name": "neuruh-policy-gate",             "version": "0.1.2a0"},
+  {"name": "neuruh-capability-registry",     "version": "0.1.2a0"},
+  {"name": "neuruh-inference-health",        "version": "0.1.2a0"},
+  {"name": "neuruh-sovereign-agent-starter", "version": "0.1.1a0"}
+]
+```
+
+The tamper evidence is not a claim. Change one field in the ledger and re-verify:
+
+```bash
+python - <<'EOF'
+from pathlib import Path
+p = Path("run-output/receipts.jsonl")
+p.write_text(p.read_text().replace('"decision": "allow"', '"decision": "deny"', 1))
+EOF
+neuruh-agent-receipt verify run-output/receipts.jsonl
+```
+
+```text
+FAIL: entry hash mismatch
+```
+
+Exit status 1. Re-run the agent to regenerate a clean ledger.
+
+Note what the model did *not* do. `inference.required` is `false` in this example, so no
+model was consulted at all — and the run still completed, because the command came from
+`execution_binding` in the configuration, not from a model. Turning inference on adds an
+observation receipt. It does not add a way to choose the command.
 
 ## What the run enforces
 
