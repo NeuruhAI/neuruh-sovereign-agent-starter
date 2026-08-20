@@ -4,25 +4,28 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "neuruh-sovereign-agent-starter"
-version = "0.1.0a0"
+version = "0.1.1a0"
 description = "Runnable governed-agent starter composed from Neuruh Public Commons primitives."
 requires-python = ">=3.11"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [{name = "Jeramie Hicks / Neuruh"}]
-
-[project.optional-dependencies]
-public = [
-  "neuruh-agent-run-manifest @ git+https://github.com/NeuruhAI/neuruh-agent-run-manifest.git@v0.1.0-alpha",
-  "neuruh-agent-receipt @ git+https://github.com/NeuruhAI/agent-receipt.git@fef3daec2fc132b8bd463ebf6f5dfa8793fd276d",
-  "neuruh-governed-exec @ git+https://github.com/NeuruhAI/neuruh-governed-exec.git@80c442a14eae79c867441a428c7ab89d44dde729",
-  "neuruh-policy-gate @ git+https://github.com/NeuruhAI/neuruh-policy-gate.git@eb4163b50ebf2e320e48f851872e30a4d6238e3c",
-  "neuruh-capability-registry @ git+https://github.com/NeuruhAI/neuruh-capability-registry.git@83706fe8fba3311994008b0b90b343dc99e36ea5",
-  "neuruh-inference-health @ git+https://github.com/NeuruhAI/neuruh-inference-health.git@476a0ef56ddbd3c16ef989e0f12b552c5164dcfa"
+dependencies = [
+  "neuruh-agent-run-manifest @ git+https://github.com/NeuruhAI/neuruh-agent-run-manifest.git@v0.1.2-alpha",
+  "neuruh-agent-receipt @ git+https://github.com/NeuruhAI/agent-receipt.git@v0.1.2-alpha",
+  "neuruh-governed-exec @ git+https://github.com/NeuruhAI/neuruh-governed-exec.git@v0.1.2-alpha",
+  "neuruh-policy-gate @ git+https://github.com/NeuruhAI/neuruh-policy-gate.git@v0.1.2-alpha",
+  "neuruh-capability-registry @ git+https://github.com/NeuruhAI/neuruh-capability-registry.git@v0.1.2-alpha",
+  "neuruh-inference-health @ git+https://github.com/NeuruhAI/neuruh-inference-health.git@v0.1.2-alpha"
 ]
 
 [project.scripts]
 neuruh-sovereign-agent = "neuruh_sovereign_agent_starter.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter"
+Repository = "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -2,55 +2,52 @@
   "schema_version": "neuruh.public-release-receipt.v1",
   "repository": "NeuruhAI/neuruh-sovereign-agent-starter",
   "artifact": "sovereign-agent-starter",
-  "release_version": "v0.1.0-alpha",
-  "package_version": "0.1.0a0",
+  "release_version": "v0.1.1-alpha",
+  "package_version": "0.1.1a0",
   "status": "APPROVED_FOR_PUBLIC_RELEASE",
-  "qualified_at": "2026-08-08T20:08:14.366307+00:00",
+  "qualified_at": "2026-08-20T06:51:36.853005+00:00",
+  "tested_source_commit": "PENDING_COMMIT",
+  "previous_release_commit": "c386378d65687787cedae3b01206f78afaf897a9",
   "qualification": {
     "tests": {
       "status": "PASS",
-      "count": 22
+      "count": 23,
+      "command": "python -m unittest discover -s tests -v"
     },
-    "wheel_build": "PASS",
-    "wheel_sha256": "58f0690da75dd15c9450410f57369130a571589e5c840cf2d11c853a02ec817e",
-    "synthetic_end_to_end": "PASS",
-    "source_secret_pattern_scan": "PASS",
-    "private_implementation_reference_scan": "PASS",
-    "git_history_gitleaks": "PASS",
+    "secret_scan": "PASS",
+    "history_secret_scan": "PASS",
+    "private_reference_scan": "PASS",
+    "clean_environment_install": "PASS",
     "license": "Apache-2.0",
-    "synthetic_examples_only": true
+    "synthetic_examples_only": true,
+    "standalone_clean_history": true,
+    "continuous_integration": "github-actions/.github/workflows/ci.yml",
+    "immutable_dependencies_only": true,
+    "clean_environment_end_to_end": "PASS"
   },
   "public_boundary": {
-    "production_runtime_exported": false,
-    "production_routing_exported": false,
-    "private_policies_exported": false,
-    "production_authority_topology_exported": false,
-    "customer_data_exported": false,
-    "private_memory_exported": false,
-    "proprietary_scoring_exported": false,
-    "domain_recipes_exported": false
+    "production_runtime": false,
+    "production_routing": false,
+    "private_policies": false,
+    "production_authority_topology": false,
+    "customer_data": false,
+    "private_memory": false,
+    "proprietary_scoring": false,
+    "domain_recipes": false,
+    "private_connectors": false
   },
-  "file_sha256": {
-    ".gitignore": "33f23ea58805caa9297594b41fdc19a327067a0861eebae6e3be1eb53eb02e1d",
-    "ARCHITECTURE.md": "3b30c8a117f1668e7f9c90a24c8664a96e711839f5b168cff109cbf1997827ad",
-    "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-    "PUBLIC_PRIVATE_BOUNDARY.md": "a8bbffc6d374a6f409c8f3957167c6241f423c22388c48548eb2434d830afb3b",
-    "README.md": "fc31fcfb5eaa4db3422f8c3d668217c8c9f16e1416240d2becf8db7e4b22a63f",
-    "SECURITY.md": "ae0c1a3ff0317125e00ff3855949c592b2cd259ba96f5a15120e675d6d2e0179",
-    "build/lib/neuruh_sovereign_agent_starter/__init__.py": "bc64d3540237c9d7ffdb53aa902205fec24044b149acfd3fd0c2924085517b98",
-    "build/lib/neuruh_sovereign_agent_starter/cli.py": "98129926e53053949e3bf7f6aca1b58ae64089035c86a923ab1c74859da51306",
-    "build/lib/neuruh_sovereign_agent_starter/core.py": "71cd705da14c4d775e8595a294a2d46b4bf1e0cf42801fb60671d6cfcb2de9fa",
-    "examples/ollama-openai-local.synthetic.json": "ecca7288673e0a2159d8ff6a5a2a97c00e59f1cef92523ceb44a4fc20fa4e8a7",
-    "examples/starter.synthetic.json": "66c81856aae09b31027d646f0516b02bde04da719bbab0267d924e777fa3419c",
-    "pyproject.toml": "dd00198fb778304ea851c2700b5af05fc14283a8bb0e04310d47629bea8627b1",
-    "src/neuruh_sovereign_agent_starter/__init__.py": "bc64d3540237c9d7ffdb53aa902205fec24044b149acfd3fd0c2924085517b98",
-    "src/neuruh_sovereign_agent_starter/cli.py": "98129926e53053949e3bf7f6aca1b58ae64089035c86a923ab1c74859da51306",
-    "src/neuruh_sovereign_agent_starter/core.py": "71cd705da14c4d775e8595a294a2d46b4bf1e0cf42801fb60671d6cfcb2de9fa",
-    "tests/test_starter.py": "a4ce9b6922b8299d645ed2be74c5b85df904b2a361c2dd784018634d0474a34c"
-  },
+  "maturity": "ACTIVE_ALPHA",
   "limitations": [
-    "This is a bounded Public Commons Active Alpha component, not Neuruh production authority.",
-    "Active Alpha interfaces may change."
+    "This is a bounded public extraction, not the Neuruh production runtime.",
+    "Passing validation does not itself grant production authority.",
+    "Interfaces and behavior may change during alpha development."
   ],
-  "tested_source_commit": "4db56c73f0b109907afabdfebeb6afa0b9be72e2"
+  "composed_dependencies": {
+    "neuruh-capability-registry": "v0.1.2-alpha",
+    "neuruh-policy-gate": "v0.1.2-alpha",
+    "neuruh-inference-health": "v0.1.2-alpha",
+    "neuruh-governed-exec": "v0.1.2-alpha",
+    "neuruh-agent-receipt": "v0.1.2-alpha",
+    "neuruh-agent-run-manifest": "v0.1.2-alpha"
+  }
 }
