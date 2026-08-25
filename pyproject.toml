@@ -20,8 +20,23 @@ dependencies = [
   "neuruh-inference-health @ git+https://github.com/NeuruhAI/neuruh-inference-health.git@v0.1.2-alpha"
 ]
 
+[project.optional-dependencies]
+# Organism vNext composition (CANONICAL CANDIDATE). Public tags where they exist; the
+# outcome-record primitive is private custody and resolves from a sibling source tree
+# via scripts/organism_env.sh (no install required to run the courts).
+organism = [
+  "neuruh-outcome-calibration-ledger @ git+https://github.com/NeuruhAI/neuruh-outcome-calibration-ledger.git@v0.1.1-alpha",
+  "neuruh-learning-update-proposal @ git+https://github.com/NeuruhAI/neuruh-learning-update-proposal.git@v0.1.1-alpha",
+  "neuruh-promotion-gate @ git+https://github.com/NeuruhAI/neuruh-promotion-gate.git@v0.1.1-alpha",
+  "neuruh-canonical-state-revision-authorization-contract @ git+https://github.com/NeuruhAI/neuruh-canonical-state-revision-authorization-contract.git",
+  "neuruh-canonical-state-revision-receipt @ git+https://github.com/NeuruhAI/neuruh-canonical-state-revision-receipt.git",
+  "neuruh-canonical-state-revision-ledger @ git+https://github.com/NeuruhAI/neuruh-canonical-state-revision-ledger.git",
+  "neuruh-effective-canonical-state-resolver @ git+https://github.com/NeuruhAI/neuruh-effective-canonical-state-resolver.git",
+]
+
 [project.scripts]
 neuruh-sovereign-agent = "neuruh_sovereign_agent_starter.cli:main"
+neuruh-organism-court = "neuruh_sovereign_agent_starter.organism.court:main"
 
 [project.urls]
 Homepage = "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter"
