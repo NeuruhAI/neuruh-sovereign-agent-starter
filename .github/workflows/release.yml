@@ -1,0 +1,73 @@
+name: release
+
+on:
+  workflow_run:
+    workflows: ["ci"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Resolve package version and release tag
+        id: version
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import re
+          import tomllib
+          from pathlib import Path
+
+          data = tomllib.loads(Path("pyproject.toml").read_text())
+          version = data["project"]["version"]
+          m = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:(a|b|rc)(\d+))?", version)
+          if not m:
+              raise SystemExit(f"unsupported project version: {version}")
+          major, minor, patch, pre, pre_n = m.groups()
+          tag = f"v{major}.{minor}.{patch}"
+          prerelease = "false"
+          if pre:
+              label = {"a": "alpha", "b": "beta", "rc": "rc"}[pre]
+              tag += f"-{label}"
+              if pre_n and pre_n != "0":
+                  tag += f".{pre_n}"
+              prerelease = "true"
+          print(f"version={version}")
+          print(f"tag={tag}")
+          print(f"prerelease={prerelease}")
+          PY
+
+      - name: Publish immutable GitHub release when absent
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
+        shell: bash
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; nothing to do."
+            exit 0
+          fi
+
+          args=(
+            "$TAG"
+            --target "$TARGET_SHA"
+            --title "Neuruh Sovereign Agent Starter — $TAG"
+            --generate-notes
+          )
+          if [[ "$PRERELEASE" == "true" ]]; then
+            args+=(--prerelease)
+          fi
+          gh release create "${args[@]}"
