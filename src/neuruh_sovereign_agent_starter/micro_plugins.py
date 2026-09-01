@@ -15,6 +15,8 @@ from typing import Any, Iterable, Mapping, Sequence
 
 
 MAX_CONTEXT_BYTES = 4096
+MAX_STATE_DIFF_BYTES = 4096
+MAX_STATE_DIFF_DEPTH = 12
 DEFAULT_FOUNDER_MINUTE_COST_USD = 2.0
 DEFAULT_LATENCY_MINUTE_COST_USD = 0.05
 
@@ -53,6 +55,26 @@ _PUBLIC_PROOF_FIELDS = (
     "limitations",
     "generated_at",
 )
+_FORBIDDEN_STATE_KEYS = _FORBIDDEN_CONTEXT_KEYS | {
+    "aegis",
+    "axon",
+    "customer_data",
+    "customer_records",
+    "deedsonar",
+    "father",
+    "governance_core",
+    "iar",
+    "landos",
+    "mother",
+    "private_memory",
+    "private_policy",
+    "private_url",
+    "prompt",
+    "prompts",
+    "recipe",
+    "recipes",
+    "weights",
+}
 
 
 def _canonical_json(value: Any) -> str:
@@ -182,6 +204,100 @@ def public_proof_card(record: Mapping[str, Any], *, extra_allow: Iterable[str] =
     return card
 
 
+def _collect_forbidden_keys(value: Any, found: set[str]) -> None:
+    if isinstance(value, Mapping):
+        for key, item in value.items():
+            if str(key).lower() in _FORBIDDEN_STATE_KEYS:
+                found.add(str(key))
+            _collect_forbidden_keys(item, found)
+    elif isinstance(value, list):
+        for item in value:
+            _collect_forbidden_keys(item, found)
+
+
+def _format_path(parts: Sequence[str]) -> str:
+    return ".".join(parts)
+
+
+def _diff_nodes(
+    before: Any,
+    after: Any,
+    parts: list[str],
+    added: list[dict[str, Any]],
+    removed: list[dict[str, Any]],
+    changed: list[dict[str, Any]],
+    depth: int,
+) -> None:
+    if depth > MAX_STATE_DIFF_DEPTH:
+        raise ValueError("state nesting exceeds max depth; flatten or pass refs")
+    if isinstance(before, Mapping) and isinstance(after, Mapping):
+        for key in sorted(set(before) | set(after), key=lambda k: str(k)):
+            child = parts + [str(key)]
+            if key not in before:
+                added.append({"path": _format_path(child), "value": after[key]})
+            elif key not in after:
+                removed.append({"path": _format_path(child), "value": before[key]})
+            else:
+                _diff_nodes(before[key], after[key], child, added, removed, changed, depth + 1)
+        return
+    if isinstance(before, list) and isinstance(after, list):
+        for index in range(max(len(before), len(after))):
+            child = parts + [str(index)]
+            if index >= len(before):
+                added.append({"path": _format_path(child), "value": after[index]})
+            elif index >= len(after):
+                removed.append({"path": _format_path(child), "value": before[index]})
+            else:
+                _diff_nodes(before[index], after[index], child, added, removed, changed, depth + 1)
+        return
+    if _canonical_json(before) != _canonical_json(after):
+        changed.append({
+            "path": _format_path(parts),
+            "before": before,
+            "after": after,
+        })
+
+
+def diff_public_state(
+    before: Mapping[str, Any],
+    after: Mapping[str, Any],
+    *,
+    max_bytes: int = MAX_STATE_DIFF_BYTES,
+) -> dict[str, Any]:
+    """Return a deterministic structural delta of two JSON objects.
+
+    Private/conversational keys are refused rather than projected.  The helper
+    reports added, removed, and changed paths only.  It grants no authority and
+    performs no I/O.
+    """
+    if not isinstance(before, Mapping) or not isinstance(after, Mapping):
+        raise TypeError("before and after must be objects")
+    if not isinstance(max_bytes, int) or max_bytes < 256:
+        raise ValueError("max_bytes must be an integer >= 256")
+    forbidden: set[str] = set()
+    _collect_forbidden_keys(before, forbidden)
+    _collect_forbidden_keys(after, forbidden)
+    if forbidden:
+        raise ValueError(
+            "private or conversational fields are not accepted: "
+            + ", ".join(sorted(forbidden))
+        )
+
+    added: list[dict[str, Any]] = []
+    removed: list[dict[str, Any]] = []
+    changed: list[dict[str, Any]] = []
+    _diff_nodes(before, after, [], added, removed, changed, 0)
+    delta = {
+        "added": added,
+        "changed": changed,
+        "removed": removed,
+        "unchanged": not (added or removed or changed),
+    }
+    if len(_canonical_json(delta).encode("utf-8")) > max_bytes:
+        raise ValueError("state delta exceeds max_bytes; store large payloads externally and pass refs")
+    return delta
+
+
 def _load_json(path: str) -> Any:
     if path == "-":
         return json.load(sys.stdin)
@@ -219,4 +335,20 @@ def proof_card_main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--allow", action="append", default=[], help="additional top-level field to allow")
     args = parser.parse_args(argv)
     _write(public_proof_card(_load_json(args.input), extra_allow=args.allow))
+    return 0
+
+
+def state_diff_main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Compute a public-safe structural state delta")
+    parser.add_argument("before", help="JSON object file or - for stdin")
+    parser.add_argument("after", help="JSON object file")
+    parser.add_argument("--max-bytes", type=int, default=MAX_STATE_DIFF_BYTES)
+    args = parser.parse_args(argv)
+    if args.before == "-" and args.after == "-":
+        raise SystemExit("before and after cannot both read stdin")
+    before = _load_json(args.before)
+    after = _load_json(args.after)
+    if not isinstance(before, dict) or not isinstance(after, dict):
+        raise SystemExit("before and after must be JSON objects")
+    _write(diff_public_state(before, after, max_bytes=args.max_bytes))
     return 0

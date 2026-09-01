@@ -1,0 +1,36 @@
+{
+  "schema_version": "neuruh.public-release-court.v1",
+  "mission": "NEURUH-PUBLIC-RELEASE-001",
+  "candidate": "neuruh-state-diff",
+  "repository": "NeuruhAI/neuruh-sovereign-agent-starter",
+  "base_sha": "133a8e65d53d705ee0139e4d659ea6000bb9d742",
+  "current_release": "v0.1.2-alpha",
+  "decision": "APPROVED_TO_IMPLEMENT",
+  "courts": {
+    "value": {
+      "status": "PASS",
+      "finding": "context-pack accepts current_state and changed_since_last_run but does not compute a before/after delta. A standalone structural diff is a real public edge utility: before/after -> path-sorted added/removed/changed. No model, no network, no authority."
+    },
+    "duplication": {
+      "status": "PASS",
+      "checked_in_repo": [
+        "neuruh-context-pack",
+        "neuruh-cheap-route",
+        "neuruh-proof-card",
+        "neuruh-sovereign-agent"
+      ],
+      "finding": "No package in this repo compares two caller-supplied JSON objects. context-pack consumes a precomputed delta field. cheap-route scores routes. proof-card projects one record. The starter core writes receipts and manifests."
+    },
+    "public_boundary": {
+      "status": "PASS",
+      "finding": "Generic local JSON comparison of caller-supplied objects. Fail-closed on private/conversational keys. No AXON/Mother/Governance/recipes/weights/scoring/prompts/customer data/production authority/private URLs. No private-repo imports."
+    }
+  },
+  "not_implemented": [
+    "remaining PUBLIC-RELEASE-001 candidates beyond neuruh-state-diff"
+  ],
+  "limitations": [
+    "Reports differences only. Grants no mutation or production authority.",
+    "Not a lifecycle attestation, reconciliation proposal, or private state store."
+  ]
+}

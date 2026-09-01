@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3a0 — v0.1.3-alpha
+
+- Add `neuruh-state-diff`: deterministic public-safe structural delta of two JSON objects.
+- Refuse private/conversational fields instead of projecting them.
+- Add tests covering added/removed/changed paths, nested list indexes, private-field refusal, and oversized-delta refusal.
+- This utility is a standalone public edge tool; it does not connect to or expose the private Neuruh production runtime.
+
 ## 0.1.2a0 — v0.1.2-alpha
 
 - Add `neuruh-context-pack`: deterministic <=4 KiB execution-context compiler that refuses raw transcript/chat fields.
