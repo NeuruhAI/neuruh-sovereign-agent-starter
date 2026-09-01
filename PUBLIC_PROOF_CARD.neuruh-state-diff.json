@@ -1,0 +1,29 @@
+{
+  "artifact": "neuruh-state-diff",
+  "commit_sha": "423b7aef54adcc18cc53df85e7b99dfdc35379c0",
+  "generated_at": "2026-09-01T23:49:07.252615+00:00",
+  "limitations": [
+    "Reports structural differences only. Grants no mutation or production authority.",
+    "Refuses private/conversational fields instead of projecting them.",
+    "This is a bounded public edge utility, not the Neuruh production runtime.",
+    "The other PUBLIC-RELEASE-001 candidates were not implemented in this release."
+  ],
+  "mission": "NEURUH-PUBLIC-RELEASE-001",
+  "mission_id": "NEURUH-PUBLIC-RELEASE-001",
+  "outcome": "APPROVED_FOR_PUBLIC_RELEASE",
+  "public_url": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/releases/tag/v0.1.3-alpha",
+  "status": "PASS",
+  "tests": {
+    "command": "python -m unittest discover -s tests -v",
+    "count": 36,
+    "main_ci": "PASS",
+    "matrix": [
+      "3.11",
+      "3.12",
+      "3.13"
+    ],
+    "pr_ci": "PASS",
+    "url": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/actions/runs/33572593267"
+  },
+  "version": "v0.1.3-alpha"
+}
