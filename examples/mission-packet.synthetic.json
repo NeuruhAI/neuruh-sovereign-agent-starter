@@ -1,0 +1,14 @@
+{
+  "mission_id": "PACK-001",
+  "objective": "compile a bounded execution packet from known pointers",
+  "current_state": "examples ready",
+  "changed_since_last_run": ["added public plugin packaging"],
+  "canonical_refs": ["sha:synthetic-example", "file:MICRO_PLUGINS.md"],
+  "known_failures": [],
+  "blockers": [],
+  "authority": {"actor": "operator", "scope": "public-demo"},
+  "budget": {"max_usd": 0},
+  "acceptance_test": "packet keeps mission_id and drops unknown keys",
+  "next_action": "run context_pack",
+  "giant_payload": "ignored-unknown-field"
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/schemas/compile_context_packet.json",
+  "title": "compile_context_packet",
+  "$defs": {
+    "state": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "mission_id": {"type": "string"},
+        "objective": {"type": "string"},
+        "current_state": {},
+        "changed_since_last_run": {"type": "array"},
+        "canonical_refs": {"type": "array", "items": {"type": "string"}},
+        "known_failures": {"type": "array"},
+        "blockers": {"type": "array"},
+        "authority": {},
+        "budget": {},
+        "acceptance_test": {},
+        "next_action": {"type": "string"}
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state"],
+      "properties": {
+        "state": {"$ref": "#/$defs/state"},
+        "max_bytes": {"type": "integer", "minimum": 256, "default": 4096}
+      }
+    },
+    "output": {
+      "$ref": "#/$defs/state"
+    }
+  }
+}
