@@ -4,6 +4,7 @@ import unittest
 from neuruh_sovereign_agent_starter.micro_plugins import (
     choose_cheapest_capable_route,
     compile_context_packet,
+    diff_public_state,
     public_proof_card,
 )
 
@@ -109,6 +110,77 @@ class PublicProofTests(unittest.TestCase):
         record = {"status": "PASS", "demo": "public fixture"}
         self.assertNotIn("demo", public_proof_card(record))
         self.assertEqual(public_proof_card(record, extra_allow=["demo"])["demo"], "public fixture")
+
+
+class StateDiffTests(unittest.TestCase):
+    def test_reports_added_removed_and_changed_paths(self):
+        delta = diff_public_state(
+            {
+                "mission_id": "SHIP-001",
+                "status": "blocked",
+                "blocker": "missing receipt",
+                "counts": {"done": 1},
+            },
+            {
+                "mission_id": "SHIP-001",
+                "status": "ready",
+                "counts": {"done": 2},
+                "next_action": "court preview",
+            },
+        )
+        self.assertFalse(delta["unchanged"])
+        self.assertEqual(delta["added"], [{"path": "next_action", "value": "court preview"}])
+        self.assertEqual(delta["removed"], [{"path": "blocker", "value": "missing receipt"}])
+        self.assertEqual(
+            delta["changed"],
+            [
+                {"path": "counts.done", "before": 1, "after": 2},
+                {"path": "status", "before": "blocked", "after": "ready"},
+            ],
+        )
+
+    def test_identical_objects_are_unchanged(self):
+        state = {"mission_id": "M1", "status": "ready"}
+        delta = diff_public_state(state, {"mission_id": "M1", "status": "ready"})
+        self.assertTrue(delta["unchanged"])
+        self.assertEqual(delta["added"], [])
+        self.assertEqual(delta["removed"], [])
+        self.assertEqual(delta["changed"], [])
+
+    def test_refuses_private_and_conversational_fields(self):
+        with self.assertRaises(ValueError) as ctx:
+            diff_public_state(
+                {"status": "ready", "recipe": {"weights": [1, 2]}},
+                {"status": "ready", "prompt": "secret factory"},
+            )
+        message = str(ctx.exception)
+        self.assertIn("recipe", message)
+        self.assertIn("prompt", message)
+        self.assertIn("weights", message)
+
+    def test_list_index_paths_are_deterministic(self):
+        first = diff_public_state(
+            {"items": [{"id": "a"}, {"id": "b"}]},
+            {"items": [{"id": "a"}, {"id": "c"}, {"id": "d"}]},
+        )
+        second = diff_public_state(
+            {"items": [{"id": "a"}, {"id": "b"}]},
+            {"items": [{"id": "a"}, {"id": "c"}, {"id": "d"}]},
+        )
+        self.assertEqual(first, second)
+        self.assertEqual(
+            first["changed"],
+            [{"path": "items.1.id", "before": "b", "after": "c"}],
+        )
+        self.assertEqual(first["added"], [{"path": "items.2", "value": {"id": "d"}}])
+
+    def test_refuses_oversized_delta(self):
+        with self.assertRaises(ValueError):
+            diff_public_state(
+                {"payload": "a" * 200},
+                {"payload": "b" * 200},
+                max_bytes=256,
+            )
 
 
 if __name__ == "__main__":

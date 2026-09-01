@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "neuruh-sovereign-agent-starter"
-version = "0.1.2a0"
+version = "0.1.3a0"
 description = "Runnable governed-agent starter composed from Neuruh Public Commons primitives."
 requires-python = ">=3.11"
 readme = "README.md"
@@ -25,6 +25,7 @@ neuruh-sovereign-agent = "neuruh_sovereign_agent_starter.cli:main"
 neuruh-context-pack = "neuruh_sovereign_agent_starter.micro_plugins:context_pack_main"
 neuruh-cheap-route = "neuruh_sovereign_agent_starter.micro_plugins:cheap_route_main"
 neuruh-proof-card = "neuruh_sovereign_agent_starter.micro_plugins:proof_card_main"
+neuruh-state-diff = "neuruh_sovereign_agent_starter.micro_plugins:state_diff_main"
 
 [project.urls]
 Homepage = "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter"

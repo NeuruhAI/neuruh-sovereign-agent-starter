@@ -1,6 +1,6 @@
 # Neuruh Micro Plugins
 
-Three standalone, deterministic utilities extracted for public use. They do not connect to the private Neuruh runtime and contain no production authority, private policies, recipes, prompts, customer data, or internal topology.
+Four standalone, deterministic utilities extracted for public use. They do not connect to the private Neuruh runtime and contain no production authority, private policies, recipes, prompts, customer data, or internal topology.
 
 ## 1. Context Pack
 
@@ -43,6 +43,16 @@ neuruh-proof-card receipt.json
 
 Only a small set of proof fields are emitted by default: mission/artifact/version/status/outcome/commit/tests/public URL/limitations/timestamp. Unexpected private fields are omitted unless explicitly allowlisted by the caller.
 
+## 4. State Diff
+
+Compute a deterministic structural delta between two JSON objects.
+
+```bash
+neuruh-state-diff before.json after.json
+```
+
+Output is path-sorted added/removed/changed entries plus an `unchanged` flag. Nested objects and list indexes are walked. Private or conversational keys (`prompt`, `recipe`, `weights`, `transcript`, customer fields, and private-runtime names) are refused rather than projected. Default output ceiling is 4096 bytes. This helper reports differences only; it grants no authority.
+
 ## Why these exist
 
 They are intentionally small enough to use outside Neuruh:
@@ -51,6 +61,7 @@ They are intentionally small enough to use outside Neuruh:
 big context -> bounded packet
 candidate routes -> cheapest capable route
 internal receipt -> public-safe proof card
+before/after state -> public-safe delta
 ```
 
 They are edge utilities, not a second orchestration system.
