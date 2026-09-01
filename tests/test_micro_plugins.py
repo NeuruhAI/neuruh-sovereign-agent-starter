@@ -1,12 +1,20 @@
+import io
 import json
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
 from neuruh_sovereign_agent_starter.micro_plugins import (
+    cheap_route_main,
     choose_cheapest_capable_route,
     compile_context_packet,
+    context_pack_main,
     diff_public_state,
+    proof_card_main,
     public_proof_card,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class ContextPackTests(unittest.TestCase):
@@ -181,6 +189,26 @@ class StateDiffTests(unittest.TestCase):
                 {"payload": "b" * 200},
                 max_bytes=256,
             )
+
+
+class MicroPluginCliTests(unittest.TestCase):
+    def test_cli_entry_points_still_read_synthetic_fixtures(self):
+        buf = io.StringIO()
+        with patch("sys.stdout", buf):
+            self.assertEqual(context_pack_main([str(ROOT / "examples/mission-packet.synthetic.json")]), 0)
+        self.assertEqual(json.loads(buf.getvalue())["mission_id"], "PACK-001")
+
+        buf = io.StringIO()
+        with patch("sys.stdout", buf):
+            self.assertEqual(cheap_route_main([str(ROOT / "examples/route-candidates.synthetic.json")]), 0)
+        self.assertEqual(json.loads(buf.getvalue())["candidate_id"], "deterministic-l0")
+
+        buf = io.StringIO()
+        with patch("sys.stdout", buf):
+            self.assertEqual(proof_card_main([str(ROOT / "examples/internal-receipt.synthetic.json")]), 0)
+        card = json.loads(buf.getvalue())
+        self.assertEqual(card["status"], "PASS")
+        self.assertNotIn("private_recipe", card)
 
 
 if __name__ == "__main__":

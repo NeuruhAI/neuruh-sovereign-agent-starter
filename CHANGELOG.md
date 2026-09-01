@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4a0 — v0.1.4-alpha
+
+- Package the existing public micro-plugins as an Agent Plugin (`plugin.json` + `mcp.json` + three skills).
+- Add a stdio MCP server that imports and calls `compile_context_packet`, `choose_cheapest_capable_route`, and `public_proof_card`. No second implementation.
+- MCP tools: `context_pack`, `cheap_route`, `proof_card`.
+- Add JSON Schemas, synthetic fixtures, a tiny fixture demo, and MCP protocol tests.
+- The primitives and the governed-exec starter path are unchanged. `neuruh-state-diff` remains a CLI utility and is not added as a fourth MCP tool.
+
 ## 0.1.3a0 — v0.1.3-alpha
 
 - Add `neuruh-state-diff`: deterministic public-safe structural delta of two JSON objects.

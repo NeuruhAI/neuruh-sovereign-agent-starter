@@ -1,0 +1,18 @@
+{
+  "mission_id": "PACK-001",
+  "mission": "public micro-plugin packaging demo",
+  "artifact": "neuruh-public-micro-plugins",
+  "version": "0.1.4-alpha",
+  "status": "PASS",
+  "outcome": "synthetic proof card",
+  "commit_sha": "synthetic00000000000000000000000000000000",
+  "tests": {"passed": 3, "command": "python -m unittest discover -s tests -v"},
+  "public_url": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter",
+  "limitations": ["synthetic fixture; not a production receipt"],
+  "generated_at": "2026-09-01T00:00:00+00:00",
+  "private_recipe": {"weights": [1, 2, 3]},
+  "prompt": "secret factory",
+  "database_table": "internal_rows",
+  "axon_route": "must-be-stripped",
+  "mother_state": "must-be-stripped"
+}

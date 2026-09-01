@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/schemas/choose_cheapest_capable_route.json",
+  "title": "choose_cheapest_capable_route",
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "required": ["candidate_id", "layer"],
+      "properties": {
+        "candidate_id": {"type": "string"},
+        "layer": {"type": "string", "enum": ["L0", "L1", "L2", "L3", "L4"]},
+        "success_probability": {"type": "number", "minimum": 0, "maximum": 1},
+        "expected_value_usd": {"type": "number", "minimum": 0},
+        "execution_cost_usd": {"type": "number", "minimum": 0},
+        "model_cost_usd": {"type": "number", "minimum": 0},
+        "risk_cost_usd": {"type": "number", "minimum": 0},
+        "founder_minutes": {"type": "number", "minimum": 0},
+        "latency_minutes": {"type": "number", "minimum": 0}
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidates"],
+      "properties": {
+        "candidates": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/candidate"}
+        },
+        "minimum_success_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.8
+        },
+        "founder_minute_cost_usd": {"type": "number", "minimum": 0},
+        "latency_minute_cost_usd": {"type": "number", "minimum": 0}
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "layer",
+        "score",
+        "expected_value_usd",
+        "total_cost_usd"
+      ],
+      "properties": {
+        "candidate_id": {"type": "string"},
+        "layer": {"type": "string"},
+        "score": {"type": "number"},
+        "expected_value_usd": {"type": "number"},
+        "total_cost_usd": {"type": "number"}
+      }
+    }
+  }
+}

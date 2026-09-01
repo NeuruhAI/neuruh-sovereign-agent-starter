@@ -2,6 +2,8 @@
 
 Four standalone, deterministic utilities extracted for public use. They do not connect to the private Neuruh runtime and contain no production authority, private policies, recipes, prompts, customer data, or internal topology.
 
+This package is **not** AXON, Mother, IAR, DeedSonar, JGI, or Governance Core. The Agent Plugin wraps the three functions in sections 1–3 only. State-diff stays a CLI utility.
+
 ## 1. Context Pack
 
 Compile a small execution packet instead of replaying an entire chat or transcript.
@@ -65,3 +67,40 @@ before/after state -> public-safe delta
 ```
 
 They are edge utilities, not a second orchestration system.
+
+## CLI
+
+After `pip install .`:
+
+```bash
+neuruh-context-pack examples/mission-packet.synthetic.json
+neuruh-cheap-route examples/route-candidates.synthetic.json --min-success 0.8
+neuruh-proof-card examples/internal-receipt.synthetic.json
+python -m neuruh_sovereign_agent_starter.plugin_demo
+```
+
+Or stdin:
+
+```bash
+neuruh-context-pack - < examples/mission-packet.synthetic.json
+```
+
+## Agent Plugin (local load)
+
+This repo root is an Agent Plugin:
+
+- name: `neuruh-public-micro-plugins`
+- skills: `neuruh-context-pack`, `neuruh-cheap-route`, `neuruh-proof-card`
+- MCP tools: `context_pack`, `cheap_route`, `proof_card`
+
+The MCP server is a stdio JSON-RPC adapter. It imports the three functions above. It does not reimplement them and does not talk to a network.
+
+Copy the repo as a **real directory** into Cursor local plugins. A symlink that points outside `~/.cursor/plugins/local` is rejected:
+
+```bash
+mkdir -p ~/.cursor/plugins/local
+rm -rf ~/.cursor/plugins/local/neuruh-public-micro-plugins
+cp -R . ~/.cursor/plugins/local/neuruh-public-micro-plugins
+```
+
+Then reload the Cursor window. Customize should show plugin name `neuruh-public-micro-plugins`, three skills, and three MCP tools. This is not a Cursor Marketplace submission.

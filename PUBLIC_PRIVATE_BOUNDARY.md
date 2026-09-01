@@ -12,7 +12,8 @@ This starter composes only public reliability primitives and a small neutral run
 - governed execution;
 - public Agent Receipt chain;
 - public Agent Run Manifest;
-- synthetic examples and adversarial tests.
+- synthetic examples and adversarial tests;
+- public-safe micro-plugins (`compile_context_packet`, `choose_cheapest_capable_route`, `public_proof_card`, `diff_public_state`) and the Agent Plugin wrapper that calls the first three.
 
 ## Private and not included
 

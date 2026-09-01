@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/schemas/public_proof_card.json",
+  "title": "public_proof_card",
+  "$defs": {
+    "record": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "mission": {},
+        "mission_id": {"type": "string"},
+        "artifact": {},
+        "version": {"type": "string"},
+        "status": {"type": "string"},
+        "outcome": {},
+        "commit_sha": {"type": "string"},
+        "tests": {},
+        "public_url": {"type": "string"},
+        "limitations": {},
+        "generated_at": {"type": "string"}
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record"],
+      "properties": {
+        "record": {"$ref": "#/$defs/record"},
+        "extra_allow": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "output": {
+      "$ref": "#/$defs/record"
+    }
+  }
+}

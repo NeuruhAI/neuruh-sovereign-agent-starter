@@ -1,0 +1,24 @@
+[
+  {
+    "candidate_id": "deterministic-l0",
+    "layer": "L0",
+    "success_probability": 0.95,
+    "expected_value_usd": 100,
+    "execution_cost_usd": 0.01,
+    "model_cost_usd": 0,
+    "risk_cost_usd": 0,
+    "founder_minutes": 0,
+    "latency_minutes": 0.1
+  },
+  {
+    "candidate_id": "frontier-l4",
+    "layer": "L4",
+    "success_probability": 0.95,
+    "expected_value_usd": 100,
+    "execution_cost_usd": 0.01,
+    "model_cost_usd": 1.5,
+    "risk_cost_usd": 0,
+    "founder_minutes": 0,
+    "latency_minutes": 1
+  }
+]
