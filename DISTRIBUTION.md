@@ -6,7 +6,7 @@ This repository is the public-safe distribution edge for Neuruh agent-operations
 
 - Package: `neuruh-sovereign-agent-starter`
 - Plugin identity: `neuruh-public-micro-plugins`
-- Release target: `v0.1.8-alpha`
+- Release target: `v0.1.9-alpha`
 - Runtime: offline stdio MCP after install; no account or API key
 - MCP tools: `context_pack`, `cheap_route`, `proof_card`
 - Additional CLIs: `neuruh-state-diff`, `neuruh-handoff-pack`

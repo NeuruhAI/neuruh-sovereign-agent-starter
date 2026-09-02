@@ -114,6 +114,63 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual([t["name"] for t in decoded[1]["result"]["tools"]], list(mcp_server.TOOL_NAMES))
         self.assertEqual(json.loads(decoded[2]["result"]["content"][0]["text"])["mission_id"], "STDIO")
 
+    def test_stdio_roundtrip_over_mcp_newline_framing(self):
+        """MCP's stdio transport is newline-delimited JSON, and that is what every
+        MCP client writes. Drive the real subprocess the way a client does.
+
+        The suite previously exercised only ``handle_rpc`` and a self-written
+        ``Content-Length`` frame, so it agreed with the server about a framing no
+        MCP client uses. This test fails if that regresses.
+        """
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(ROOT / "src")
+        proc = subprocess.Popen(
+            [sys.executable, "-m", "neuruh_sovereign_agent_starter.mcp_server"],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env,
+        )
+        self.addCleanup(proc.kill)
+        messages = [
+            {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test"}}},
+            {"jsonrpc": "2.0", "method": "notifications/initialized"},
+            {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+            {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "method": "tools/call",
+                "params": {"name": "context_pack", "arguments": {"state": {"mission_id": "NDJSON", "objective": "roundtrip"}}},
+            },
+        ]
+        blob = b"".join(json.dumps(m).encode("utf-8") + b"\n" for m in messages)
+        stdout, stderr = proc.communicate(blob, timeout=30)
+        self.assertEqual(proc.returncode, 0, stderr.decode("utf-8", errors="replace"))
+        self.assertNotIn(b"Content-Length:", stdout, "newline-framed clients must not receive LSP headers")
+        lines = [line for line in stdout.split(b"\n") if line.strip()]
+        decoded = [json.loads(line) for line in lines]
+        # The notification gets no reply, so three requests produce three responses.
+        self.assertEqual(len(decoded), 3, decoded)
+        self.assertEqual(decoded[0]["result"]["serverInfo"]["name"], "neuruh-public-micro-plugins")
+        self.assertEqual([t["name"] for t in decoded[1]["result"]["tools"]], list(mcp_server.TOOL_NAMES))
+        self.assertEqual(json.loads(decoded[2]["result"]["content"][0]["text"])["mission_id"], "NDJSON")
+
+    def test_reader_reports_framing_and_writer_honors_it(self):
+        newline = io.BytesIO(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/list"}).encode("utf-8") + b"\n")
+        message, framing = mcp_server._read_message(newline)
+        self.assertEqual(framing, "ndjson")
+        self.assertEqual(message["method"], "tools/list")
+
+        raw = json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}).encode("utf-8")
+        lsp = io.BytesIO(_write_rpc(raw))
+        message, framing = mcp_server._read_message(lsp)
+        self.assertEqual(framing, "lsp")
+        self.assertEqual(message["id"], 2)
+
+        out = io.BytesIO()
+        mcp_server._write_message(out, {"ok": True}, "ndjson")
+        self.assertEqual(out.getvalue(), b'{"ok":true}\n')
+        out = io.BytesIO()
+        mcp_server._write_message(out, {"ok": True}, "lsp")
+        self.assertTrue(out.getvalue().startswith(b"Content-Length: 11\r\n\r\n"))
+
 
 class McpDelegationTests(unittest.TestCase):
     def test_imported_functions_are_the_released_primitives(self):
