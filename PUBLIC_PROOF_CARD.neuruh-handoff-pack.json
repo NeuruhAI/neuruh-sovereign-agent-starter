@@ -1,0 +1,31 @@
+{
+  "artifact": "neuruh-handoff-pack",
+  "commit_sha": "b322e7f6da8125352158934c76fd6f84a5d3085c",
+  "generated_at": "2026-09-02T10:36:12Z",
+  "limitations": [
+    "Packs only caller-supplied public pieces. Grants no mutation or production authority.",
+    "Not a lifecycle attestation, private state store, or orchestration handoff.",
+    "from_run and to_run are operator-declared public labels, not runtime authority.",
+    "CLI only; not a fourth MCP tool or fourth Agent Plugin skill.",
+    "This is a bounded public edge utility, not the Neuruh production runtime.",
+    "The other PUBLIC-RELEASE-001 candidates were not implemented in this release."
+  ],
+  "mission": "NEURUH-PUBLIC-RELEASE-001",
+  "mission_id": "NEURUH-PUBLIC-RELEASE-001",
+  "outcome": "APPROVED_FOR_PUBLIC_RELEASE",
+  "public_url": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/releases/tag/v0.1.5-alpha",
+  "status": "PASS",
+  "tests": {
+    "command": "python -m unittest discover -s tests -v",
+    "count": 60,
+    "main_ci": "PASS",
+    "matrix": [
+      "3.11",
+      "3.12",
+      "3.13"
+    ],
+    "pr_ci": "PASS",
+    "url": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/actions/runs/33620102420"
+  },
+  "version": "v0.1.5-alpha"
+}
