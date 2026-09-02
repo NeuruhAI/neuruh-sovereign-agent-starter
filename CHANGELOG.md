@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.5a0 — v0.1.5-alpha
+
+- Add `neuruh-handoff-pack`: portable continuation envelope assembled from caller-supplied public pieces.
+- Compose `compile_context_packet`, optional `diff_public_state` (only when before+after are supplied), and optional `public_proof_card` (only when a receipt is supplied). No second implementation.
+- CLI only. Not a fourth MCP tool and not a fourth Agent Plugin skill. PR #4's public contract remains exactly three MCP tools (`context_pack`, `cheap_route`, `proof_card`).
+- Refuse private/conversational fields. Bundle ceiling 4096 bytes; refuse rather than truncate the spine. No invented mission, objective, next-action, cost, proof, or timestamp fields.
+- Add tests covering context spine, unknown/private-key refusal, transcript refusal, optional delta/proof identity, oversized-bundle refusal, composition identity, and non-JSON rejection.
+
 ## 0.1.4a0 — v0.1.4-alpha
 
 - Package the existing public micro-plugins as an Agent Plugin (`plugin.json` + `mcp.json` + three skills).

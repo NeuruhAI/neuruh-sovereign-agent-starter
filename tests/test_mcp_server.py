@@ -52,6 +52,8 @@ class McpProtocolTests(unittest.TestCase):
         listed = _rpc("tools/list", id_=2)
         names = [tool["name"] for tool in listed["result"]["tools"]]
         self.assertEqual(names, ["context_pack", "cheap_route", "proof_card"])
+        self.assertNotIn("handoff_pack", names)
+        self.assertNotIn("state_diff", names)
         for tool in listed["result"]["tools"]:
             schema = tool["inputSchema"]
             self.assertEqual(schema["type"], "object")
@@ -209,6 +211,8 @@ class McpBoundaryTests(unittest.TestCase):
         self.assertNotIn("_FORBIDDEN_CONTEXT_KEYS", source)
         self.assertNotIn("_PUBLIC_PROOF_FIELDS", source)
         self.assertNotIn("founder_minutes *", source)
+        self.assertNotIn("compile_handoff_pack", source)
+        self.assertNotIn("diff_public_state", source)
 
     def test_no_network_required_at_runtime(self):
         class Guard(socket.socket):

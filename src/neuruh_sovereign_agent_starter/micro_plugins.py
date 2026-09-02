@@ -16,7 +16,9 @@ from typing import Any, Iterable, Mapping, Sequence
 
 MAX_CONTEXT_BYTES = 4096
 MAX_STATE_DIFF_BYTES = 4096
+MAX_HANDOFF_PACK_BYTES = 4096
 MAX_STATE_DIFF_DEPTH = 12
+HANDOFF_PACK_SCHEMA_VERSION = "neuruh.handoff-pack.v0.1"
 DEFAULT_FOUNDER_MINUTE_COST_USD = 2.0
 DEFAULT_LATENCY_MINUTE_COST_USD = 0.05
 
@@ -298,6 +300,74 @@ def diff_public_state(
     return delta
 
 
+_HANDOFF_OPTIONAL_ENVELOPE_FIELDS = (
+    "produced_at",
+    "produced_refs",
+    "limitations",
+)
+
+
+def compile_handoff_pack(
+    state: Mapping[str, Any],
+    *,
+    before: Mapping[str, Any] | None = None,
+    after: Mapping[str, Any] | None = None,
+    last_receipt: Mapping[str, Any] | None = None,
+    from_run: str | None = None,
+    to_run: str | None = None,
+    max_bytes: int = MAX_HANDOFF_PACK_BYTES,
+) -> dict[str, Any]:
+    """Assemble a portable continuation envelope from caller-supplied pieces.
+
+    Composes ``compile_context_packet``, and optionally ``diff_public_state``
+    and ``public_proof_card``.  Unknown fields are not copied.  Private or
+    conversational keys are refused.  The helper packs only what the caller
+    supplied; it invents no mission, objective, next action, cost, proof, or
+    timestamp fields.  ``from_run`` / ``to_run`` are operator-declared public
+    labels only.
+    """
+    if not isinstance(state, Mapping):
+        raise TypeError("state must be an object")
+    if not isinstance(max_bytes, int) or max_bytes < 256:
+        raise ValueError("max_bytes must be an integer >= 256")
+    if (before is None) ^ (after is None):
+        raise ValueError("before and after must both be supplied to include a delta")
+    if last_receipt is not None and not isinstance(last_receipt, Mapping):
+        raise TypeError("last_receipt must be an object")
+    if from_run is not None and not isinstance(from_run, str):
+        raise TypeError("from_run must be a public label string")
+    if to_run is not None and not isinstance(to_run, str):
+        raise TypeError("to_run must be a public label string")
+
+    forbidden: set[str] = set()
+    _collect_forbidden_keys(state, forbidden)
+    if forbidden:
+        raise ValueError(
+            "private or conversational fields are not accepted: "
+            + ", ".join(sorted(forbidden))
+        )
+
+    envelope: dict[str, Any] = {
+        "schema_version": HANDOFF_PACK_SCHEMA_VERSION,
+        "context": compile_context_packet(state, max_bytes=max_bytes),
+    }
+    if from_run:
+        envelope["from_run"] = from_run
+    if to_run:
+        envelope["to_run"] = to_run
+    for key in _HANDOFF_OPTIONAL_ENVELOPE_FIELDS:
+        if key in state and state[key] not in (None, "", [], {}):
+            envelope[key] = state[key]
+    if before is not None and after is not None:
+        envelope["delta"] = diff_public_state(before, after, max_bytes=max_bytes)
+    if last_receipt is not None:
+        envelope["last_proof"] = public_proof_card(last_receipt)
+
+    if len(_canonical_json(envelope).encode("utf-8")) > max_bytes:
+        raise ValueError("handoff pack exceeds max_bytes; store large payloads externally and pass refs")
+    return envelope
+
+
 def _load_json(path: str) -> Any:
     if path == "-":
         return json.load(sys.stdin)
@@ -351,4 +421,41 @@ def state_diff_main(argv: Sequence[str] | None = None) -> int:
     if not isinstance(before, dict) or not isinstance(after, dict):
         raise SystemExit("before and after must be JSON objects")
     _write(diff_public_state(before, after, max_bytes=args.max_bytes))
+    return 0
+
+
+def handoff_pack_main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Assemble a public-safe continuation envelope")
+    parser.add_argument("state", help="JSON object file or - for stdin")
+    parser.add_argument("--before", help="JSON object file for the prior public state")
+    parser.add_argument("--after", help="JSON object file for the later public state")
+    parser.add_argument("--receipt", help="JSON object file for the last public-safe receipt")
+    parser.add_argument("--from-run", dest="from_run", help="operator-declared public source run label")
+    parser.add_argument("--to-run", dest="to_run", help="operator-declared public destination run label")
+    parser.add_argument("--max-bytes", type=int, default=MAX_HANDOFF_PACK_BYTES)
+    args = parser.parse_args(argv)
+    state = _load_json(args.state)
+    if not isinstance(state, dict):
+        raise SystemExit("state must be a JSON object")
+    kwargs: dict[str, Any] = {"max_bytes": args.max_bytes}
+    if args.before is not None:
+        before = _load_json(args.before)
+        if not isinstance(before, dict):
+            raise SystemExit("before must be a JSON object")
+        kwargs["before"] = before
+    if args.after is not None:
+        after = _load_json(args.after)
+        if not isinstance(after, dict):
+            raise SystemExit("after must be a JSON object")
+        kwargs["after"] = after
+    if args.receipt is not None:
+        receipt = _load_json(args.receipt)
+        if not isinstance(receipt, dict):
+            raise SystemExit("receipt must be a JSON object")
+        kwargs["last_receipt"] = receipt
+    if args.from_run:
+        kwargs["from_run"] = args.from_run
+    if args.to_run:
+        kwargs["to_run"] = args.to_run
+    _write(compile_handoff_pack(state, **kwargs))
     return 0
