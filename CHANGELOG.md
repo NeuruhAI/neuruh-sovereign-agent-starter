@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.7a0 — v0.1.7-alpha
+
+- Docs and adoption only. No new primitive.
+- Add `QUICKSTART.md`, `examples/demos/` A/B/C fixtures, architecture-neutral diagram, and tagged pip-from-git install. Demo D reuses `examples/handoff-previous.synthetic.json` + `examples/handoff-current.synthetic.json`.
+- Lead README with the five public CLIs. Pin stranger clone commands to a Git tag.
+- Sync `plugin.json` and `mcp_server.SERVER_VERSION` from `0.1.4-alpha` to `0.1.7-alpha`.
+- Document local plugin copy (`PYTHONPATH=${PLUGIN_ROOT}/src`) versus pip-installed `python3 -m neuruh_sovereign_agent_starter.mcp_server` with no PYTHONPATH.
+- CLI UX: `ValueError` / `TypeError` from the five CLIs print one stderr line and exit 1. Refusal policy unchanged. Proof-card remains an allowlist (drops unknown keys, including `transcript`).
+- Public proof card: `PUBLIC_PROOF_CARD.v0.1.7-alpha.json` (packaging/docs, not a production receipt).
+
 ## 0.1.6a0 — v0.1.6-alpha
 
 - Replace the 0.1.5-alpha handoff envelope with Form A: `compile_handoff_packet(previous, current)` is a thin composition of `diff_public_state` and `compile_context_packet`. No second packing or diffing implementation.

@@ -378,13 +378,25 @@ def _write(value: Any) -> None:
     print(json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False))
 
 
+def _cli_emit(build) -> int:
+    """Write JSON on success. Print one stderr line and exit 1 on ValueError/TypeError.
+
+    Library functions still raise. This is CLI UX only; refusal policy is unchanged.
+    """
+    try:
+        _write(build())
+    except (ValueError, TypeError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    return 0
+
+
 def context_pack_main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Compile a bounded execution-context packet")
     parser.add_argument("input", help="JSON file or - for stdin")
     parser.add_argument("--max-bytes", type=int, default=MAX_CONTEXT_BYTES)
     args = parser.parse_args(argv)
-    _write(compile_context_packet(_load_json(args.input), max_bytes=args.max_bytes))
-    return 0
+    return _cli_emit(lambda: compile_context_packet(_load_json(args.input), max_bytes=args.max_bytes))
 
 
 def cheap_route_main(argv: Sequence[str] | None = None) -> int:
@@ -392,11 +404,14 @@ def cheap_route_main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("input", help="JSON array of candidate routes or - for stdin")
     parser.add_argument("--min-success", type=float, default=0.8)
     args = parser.parse_args(argv)
-    candidates = _load_json(args.input)
-    if not isinstance(candidates, list):
-        raise SystemExit("input must be a JSON array")
-    _write(choose_cheapest_capable_route(candidates, minimum_success_probability=args.min_success).as_dict())
-    return 0
+
+    def build() -> dict[str, Any]:
+        candidates = _load_json(args.input)
+        if not isinstance(candidates, list):
+            raise TypeError("input must be a JSON array")
+        return choose_cheapest_capable_route(candidates, minimum_success_probability=args.min_success).as_dict()
+
+    return _cli_emit(build)
 
 
 def proof_card_main(argv: Sequence[str] | None = None) -> int:
@@ -404,8 +419,7 @@ def proof_card_main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("input", help="JSON file or - for stdin")
     parser.add_argument("--allow", action="append", default=[], help="additional top-level field to allow")
     args = parser.parse_args(argv)
-    _write(public_proof_card(_load_json(args.input), extra_allow=args.allow))
-    return 0
+    return _cli_emit(lambda: public_proof_card(_load_json(args.input), extra_allow=args.allow))
 
 
 def state_diff_main(argv: Sequence[str] | None = None) -> int:
@@ -414,14 +428,17 @@ def state_diff_main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("after", help="JSON object file")
     parser.add_argument("--max-bytes", type=int, default=MAX_STATE_DIFF_BYTES)
     args = parser.parse_args(argv)
-    if args.before == "-" and args.after == "-":
-        raise SystemExit("before and after cannot both read stdin")
-    before = _load_json(args.before)
-    after = _load_json(args.after)
-    if not isinstance(before, dict) or not isinstance(after, dict):
-        raise SystemExit("before and after must be JSON objects")
-    _write(diff_public_state(before, after, max_bytes=args.max_bytes))
-    return 0
+
+    def build() -> dict[str, Any]:
+        if args.before == "-" and args.after == "-":
+            raise ValueError("before and after cannot both read stdin")
+        before = _load_json(args.before)
+        after = _load_json(args.after)
+        if not isinstance(before, dict) or not isinstance(after, dict):
+            raise TypeError("before and after must be JSON objects")
+        return diff_public_state(before, after, max_bytes=args.max_bytes)
+
+    return _cli_emit(build)
 
 
 def handoff_pack_main(argv: Sequence[str] | None = None) -> int:
@@ -430,11 +447,14 @@ def handoff_pack_main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("current", help="JSON object file")
     parser.add_argument("--max-bytes", type=int, default=MAX_CONTEXT_BYTES)
     args = parser.parse_args(argv)
-    if args.previous == "-" and args.current == "-":
-        raise SystemExit("previous and current cannot both read stdin")
-    previous = _load_json(args.previous)
-    current = _load_json(args.current)
-    if not isinstance(previous, dict) or not isinstance(current, dict):
-        raise SystemExit("previous and current must be JSON objects")
-    _write(compile_handoff_packet(previous, current, max_bytes=args.max_bytes))
-    return 0
+
+    def build() -> dict[str, Any]:
+        if args.previous == "-" and args.current == "-":
+            raise ValueError("previous and current cannot both read stdin")
+        previous = _load_json(args.previous)
+        current = _load_json(args.current)
+        if not isinstance(previous, dict) or not isinstance(current, dict):
+            raise TypeError("previous and current must be JSON objects")
+        return compile_handoff_packet(previous, current, max_bytes=args.max_bytes)
+
+    return _cli_emit(build)
