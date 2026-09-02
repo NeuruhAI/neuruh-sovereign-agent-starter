@@ -212,6 +212,7 @@ class McpBoundaryTests(unittest.TestCase):
         self.assertNotIn("_PUBLIC_PROOF_FIELDS", source)
         self.assertNotIn("founder_minutes *", source)
         self.assertNotIn("compile_handoff_pack", source)
+        self.assertNotIn("compile_handoff_packet", source)
         self.assertNotIn("diff_public_state", source)
 
     def test_no_network_required_at_runtime(self):
@@ -328,6 +329,20 @@ class PluginManifestTests(unittest.TestCase):
             self.assertIn("Use when", text)
             self.assertIn(tool, text)
             self.assertIn("Never invent", text)
+
+    def test_handoff_skill_points_at_cli_not_mcp(self):
+        text = (ROOT / "skills/neuruh-handoff-pack/SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("name: neuruh-handoff-pack", text)
+        self.assertIn("Use when", text)
+        self.assertIn("Never invent", text)
+        self.assertIn("compile_handoff_packet", text)
+        self.assertIn("compile_context_packet", text)
+        self.assertIn("diff_public_state", text)
+        self.assertNotIn("Call the MCP tool", text)
+        listed = _rpc("tools/list", id_=99)
+        names = [tool["name"] for tool in listed["result"]["tools"]]
+        self.assertEqual(names, ["context_pack", "cheap_route", "proof_card"])
+        self.assertNotIn("handoff_pack", names)
 
 
 class FixtureRoundtripTests(unittest.TestCase):

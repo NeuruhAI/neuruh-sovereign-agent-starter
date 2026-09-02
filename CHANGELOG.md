@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.6a0 — v0.1.6-alpha
+
+- Replace the 0.1.5-alpha handoff envelope with Form A: `compile_handoff_packet(previous, current)` is a thin composition of `diff_public_state` and `compile_context_packet`. No second packing or diffing implementation.
+- `parent_mission_id` is required (from `previous.mission_id`, or `previous.mission` if that is all that is present) and is allowed through context pack.
+- `changed_since_last_run` is derived as pointer-heavy added/changed/removed path strings. Caller-supplied deltas are ignored.
+- CLI: `neuruh-handoff-pack previous.json current.json [--max-bytes]`. Add skill `neuruh-handoff-pack`. Still not a fourth MCP tool.
+- Refuse raw chat/transcript keys and inherit state-diff private-key refusal for nested state. Oversize fails with the existing refs-not-blobs error.
+- Add synthetic previous/current fixtures and tests covering composition identity, transcript refusal, private refs, derived delta, bounded size, and no network.
+
 ## 0.1.5a0 — v0.1.5-alpha
 
 - Add `neuruh-handoff-pack`: portable continuation envelope assembled from caller-supplied public pieces.

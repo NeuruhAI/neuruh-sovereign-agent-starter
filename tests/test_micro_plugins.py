@@ -1,6 +1,7 @@
 import inspect
 import io
 import json
+import socket
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,11 +9,10 @@ from unittest.mock import patch
 
 from neuruh_sovereign_agent_starter import micro_plugins
 from neuruh_sovereign_agent_starter.micro_plugins import (
-    HANDOFF_PACK_SCHEMA_VERSION,
     cheap_route_main,
     choose_cheapest_capable_route,
     compile_context_packet,
-    compile_handoff_pack,
+    compile_handoff_packet,
     context_pack_main,
     diff_public_state,
     handoff_pack_main,
@@ -49,6 +49,15 @@ class ContextPackTests(unittest.TestCase):
         }, max_bytes=700)
         self.assertLessEqual(len(json.dumps(packet, sort_keys=True, separators=(",", ":")).encode()), 700)
         self.assertEqual(packet["next_action"], "continue")
+
+    def test_parent_mission_id_survives_context_pack(self):
+        packet = compile_context_packet({
+            "mission_id": "HAND-002",
+            "parent_mission_id": "HAND-001",
+            "objective": "continue",
+        })
+        self.assertEqual(packet["parent_mission_id"], "HAND-001")
+        self.assertEqual(packet["mission_id"], "HAND-002")
 
 
 class CheapRouteTests(unittest.TestCase):
@@ -197,185 +206,185 @@ class StateDiffTests(unittest.TestCase):
             )
 
 
+def _path_list(delta):
+    paths = []
+    for kind in ("added", "changed", "removed"):
+        paths.extend(f"{kind}:{item['path']}" for item in delta[kind])
+    return paths
+
+
 class HandoffPackTests(unittest.TestCase):
-    def test_envelope_contains_context_spine(self):
-        pack = compile_handoff_pack({
-            "mission_id": "HAND-001",
-            "objective": "continue the public run",
-            "next_action": "court preview",
-            "canonical_refs": ["sha:abc"],
-        })
-        self.assertEqual(pack["schema_version"], HANDOFF_PACK_SCHEMA_VERSION)
-        self.assertEqual(pack["schema_version"], "neuruh.handoff-pack.v0.1")
-        self.assertEqual(pack["context"]["mission_id"], "HAND-001")
-        self.assertEqual(pack["context"]["objective"], "continue the public run")
-        self.assertEqual(pack["context"]["next_action"], "court preview")
-        self.assertNotIn("from_run", pack)
-        self.assertNotIn("to_run", pack)
-        self.assertNotIn("produced_at", pack)
-        self.assertNotIn("delta", pack)
-        self.assertNotIn("last_proof", pack)
-        self.assertNotIn("mission_id", pack)
-        self.assertNotIn("objective", pack)
-        self.assertNotIn("next_action", pack)
-
-    def test_unknown_and_private_keys_are_refused(self):
-        pack = compile_handoff_pack({
-            "mission_id": "HAND-001",
-            "objective": "continue",
-            "giant_payload": "x" * 200,
-            "secret_internal": {"foo": 1},
-        })
-        encoded = json.dumps(pack, sort_keys=True)
-        self.assertNotIn("giant_payload", pack)
-        self.assertNotIn("secret_internal", pack)
-        self.assertNotIn("giant_payload", pack["context"])
-        self.assertNotIn("secret_internal", encoded)
-
-        with self.assertRaises(ValueError) as ctx:
-            compile_handoff_pack({
+    def test_parent_mission_id_and_spine_come_from_inputs(self):
+        packet = compile_handoff_packet(
+            {
                 "mission_id": "HAND-001",
-                "objective": "continue",
-                "recipe": {"weights": [1, 2]},
-                "customer_data": {"email": "hidden@example.com"},
-            })
-        message = str(ctx.exception)
-        self.assertIn("recipe", message)
-        self.assertIn("weights", message)
-        self.assertIn("customer_data", message)
+                "objective": "prior",
+                "current_state": {"status": "blocked", "blocker": "missing receipt"},
+            },
+            {
+                "mission_id": "HAND-002",
+                "objective": "continue the public run",
+                "current_state": {"status": "ready"},
+                "canonical_refs": ["sha:abc"],
+                "next_action": "court preview",
+                "giant_payload": "x" * 200,
+            },
+        )
+        self.assertEqual(packet["parent_mission_id"], "HAND-001")
+        self.assertEqual(packet["mission_id"], "HAND-002")
+        self.assertEqual(packet["objective"], "continue the public run")
+        self.assertEqual(packet["next_action"], "court preview")
+        self.assertEqual(packet["canonical_refs"], ["sha:abc"])
+        self.assertNotIn("giant_payload", packet)
+        self.assertNotIn("schema_version", packet)
+        self.assertNotIn("delta", packet)
+        self.assertNotIn("last_proof", packet)
+
+    def test_parent_mission_id_falls_back_to_mission(self):
+        packet = compile_handoff_packet(
+            {"mission": "OLD-MISSION", "current_state": {"status": "ready"}},
+            {"mission_id": "HAND-002", "objective": "continue", "current_state": {"status": "ready"}},
+        )
+        self.assertEqual(packet["parent_mission_id"], "OLD-MISSION")
+        self.assertNotIn("changed_since_last_run", packet)
+
+    def test_requires_parent_mission_id(self):
+        with self.assertRaises(ValueError) as ctx:
+            compile_handoff_packet(
+                {"objective": "prior"},
+                {"mission_id": "HAND-002", "objective": "continue"},
+            )
+        self.assertIn("parent_mission_id", str(ctx.exception))
+
+    def test_changed_since_last_run_is_derived_not_trusted(self):
+        previous = {
+            "mission_id": "HAND-001",
+            "current_state": {"status": "blocked", "blocker": "missing receipt", "counts": {"done": 1}},
+        }
+        current = {
+            "mission_id": "HAND-002",
+            "objective": "continue",
+            "current_state": {"status": "ready", "counts": {"done": 2}},
+            "changed_since_last_run": ["this-is-a-lie"],
+            "next_action": "court preview",
+        }
+        packet = compile_handoff_packet(previous, current)
+        expected = _path_list(diff_public_state(previous["current_state"], current["current_state"]))
+        self.assertEqual(packet["changed_since_last_run"], expected)
+        self.assertNotIn("this-is-a-lie", packet["changed_since_last_run"])
+        self.assertTrue(all(item.startswith(("added:", "changed:", "removed:")) for item in packet["changed_since_last_run"]))
+        self.assertFalse(any("missing receipt" in item for item in packet["changed_since_last_run"]))
 
     def test_refuses_raw_transcript(self):
-        with self.assertRaises(ValueError):
-            compile_handoff_pack({"objective": "x", "transcript": "raw chat"})
-
-    def test_optional_delta_only_when_before_and_after_supplied(self):
-        before = {
-            "mission_id": "HAND-001",
-            "status": "blocked",
-            "blocker": "missing receipt",
-        }
-        after = {
-            "mission_id": "HAND-001",
-            "status": "ready",
-            "next_action": "court preview",
-        }
-        pack = compile_handoff_pack(
-            {"mission_id": "HAND-001", "objective": "continue"},
-            before=before,
-            after=after,
-        )
-        self.assertEqual(pack["delta"], diff_public_state(before, after))
-        self.assertFalse(pack["delta"]["unchanged"])
-
-        bare = compile_handoff_pack({"mission_id": "HAND-001", "objective": "continue"})
-        self.assertNotIn("delta", bare)
-
-        with self.assertRaises(ValueError):
-            compile_handoff_pack(
-                {"mission_id": "HAND-001", "objective": "continue"},
-                before=before,
-            )
-
-    def test_optional_last_proof_matches_public_proof_card(self):
-        receipt = {
-            "mission_id": "HAND-001",
-            "status": "PASS",
-            "commit_sha": "abc123",
-            "tests": {"passed": 9},
-            "private_recipe": {"weights": [1, 2, 3]},
-            "prompt": "secret factory",
-            "database_table": "internal_rows",
-        }
-        pack = compile_handoff_pack(
-            {"mission_id": "HAND-001", "objective": "continue"},
-            last_receipt=receipt,
-        )
-        self.assertEqual(pack["last_proof"], public_proof_card(receipt))
-        self.assertEqual(pack["last_proof"]["status"], "PASS")
-        self.assertNotIn("private_recipe", pack["last_proof"])
-        self.assertNotIn("prompt", pack["last_proof"])
-        self.assertNotIn("database_table", pack["last_proof"])
-        self.assertNotIn("delta", pack)
-
-    def test_refuses_oversized_bundle(self):
         with self.assertRaises(ValueError) as ctx:
-            compile_handoff_pack({
-                "mission_id": "HAND-001",
-                "objective": "x" * 200,
-            }, max_bytes=256)
-        self.assertIn("max_bytes", str(ctx.exception))
-
-    def test_composition_identity_calls_existing_functions(self):
-        state = {"mission_id": "HAND-001", "objective": "continue"}
-        before = {"status": "blocked"}
-        after = {"status": "ready"}
-        receipt = {"status": "PASS", "prompt": "secret factory"}
-        with (
-            patch.object(micro_plugins, "compile_context_packet", wraps=compile_context_packet) as ctx,
-            patch.object(micro_plugins, "diff_public_state", wraps=diff_public_state) as diff,
-            patch.object(micro_plugins, "public_proof_card", wraps=public_proof_card) as proof,
-        ):
-            pack = compile_handoff_pack(
-                state,
-                before=before,
-                after=after,
-                last_receipt=receipt,
-                from_run="run-a",
-                to_run="run-b",
+            compile_handoff_packet(
+                {"mission_id": "HAND-001", "transcript": "raw chat"},
+                {"mission_id": "HAND-002", "objective": "continue"},
             )
-        ctx.assert_called_once()
-        self.assertEqual(ctx.call_args.args[0], state)
+        self.assertIn("transcript", str(ctx.exception))
+        with self.assertRaises(ValueError) as ctx:
+            compile_handoff_packet(
+                {"mission_id": "HAND-001"},
+                {"mission_id": "HAND-002", "prompt_history": ["secret"]},
+            )
+        self.assertIn("prompt_history", str(ctx.exception))
+
+    def test_refuses_nested_private_refs(self):
+        with self.assertRaises(ValueError) as ctx:
+            compile_handoff_packet(
+                {"mission_id": "HAND-001", "current_state": {"status": "ready"}},
+                {
+                    "mission_id": "HAND-002",
+                    "objective": "continue",
+                    "current_state": {
+                        "status": "ready",
+                        "private_url": "https://internal.example",
+                        "recipe": {"weights": [1, 2]},
+                    },
+                },
+            )
+        message = str(ctx.exception)
+        self.assertIn("private_url", message)
+        self.assertIn("recipe", message)
+        self.assertIn("weights", message)
+
+    def test_refuses_oversized_delta_with_refs_not_blobs(self):
+        with self.assertRaises(ValueError) as ctx:
+            compile_handoff_packet(
+                {"mission_id": "HAND-001", "current_state": {"payload": "a" * 200}},
+                {"mission_id": "HAND-002", "objective": "continue", "current_state": {"payload": "b" * 200}},
+                max_bytes=256,
+            )
+        self.assertIn("max_bytes", str(ctx.exception))
+        self.assertIn("refs", str(ctx.exception))
+
+    def test_composition_uses_real_diff_and_pack_functions(self):
+        previous = {"mission_id": "HAND-001", "current_state": {"status": "blocked"}}
+        current = {
+            "mission_id": "HAND-002",
+            "objective": "continue",
+            "current_state": {"status": "ready"},
+            "changed_since_last_run": ["ignore-me"],
+        }
+        self.assertIs(compile_handoff_packet.__globals__["diff_public_state"], diff_public_state)
+        self.assertIs(compile_handoff_packet.__globals__["compile_context_packet"], compile_context_packet)
+        with (
+            patch.object(micro_plugins, "diff_public_state", wraps=diff_public_state) as diff,
+            patch.object(micro_plugins, "compile_context_packet", wraps=compile_context_packet) as packed,
+        ):
+            packet = compile_handoff_packet(previous, current)
         diff.assert_called_once()
-        self.assertEqual(diff.call_args.args[0], before)
-        self.assertEqual(diff.call_args.args[1], after)
-        proof.assert_called_once_with(receipt)
-        self.assertEqual(pack["context"], compile_context_packet(state))
-        self.assertEqual(pack["delta"], diff_public_state(before, after))
-        self.assertEqual(pack["last_proof"], public_proof_card(receipt))
-        self.assertEqual(pack["from_run"], "run-a")
-        self.assertEqual(pack["to_run"], "run-b")
-
-        source = inspect.getsource(compile_handoff_pack)
-        self.assertIn("compile_context_packet(", source)
+        packed.assert_called_once()
+        self.assertEqual(diff.call_args.args[0], previous["current_state"])
+        self.assertEqual(diff.call_args.args[1], current["current_state"])
+        composed = packed.call_args.args[0]
+        self.assertEqual(composed["parent_mission_id"], "HAND-001")
+        self.assertNotEqual(composed["changed_since_last_run"], ["ignore-me"])
+        self.assertEqual(packet, compile_context_packet(composed))
+        source = inspect.getsource(compile_handoff_packet)
         self.assertIn("diff_public_state(", source)
-        self.assertIn("public_proof_card(", source)
+        self.assertIn("compile_context_packet(", source)
+        self.assertNotIn("public_proof_card(", source)
         self.assertNotIn("_diff_nodes(", source)
-        self.assertNotIn("_PUBLIC_PROOF_FIELDS", source)
-        self.assertNotIn("_CONTEXT_FIELDS", source)
+        self.assertNotIn("trimmable", source)
 
-        with patch.object(micro_plugins, "diff_public_state", wraps=diff_public_state) as unused_diff:
-            compile_handoff_pack(state)
-        unused_diff.assert_not_called()
+    def test_deterministic_canonical_json(self):
+        previous = {"mission_id": "HAND-001", "current_state": {"b": 1, "a": 0}}
+        current = {"mission_id": "HAND-002", "objective": "continue", "current_state": {"a": 1, "b": 1}}
+        first = compile_handoff_packet(previous, current)
+        second = compile_handoff_packet(previous, current)
+        self.assertEqual(first, second)
+        self.assertEqual(
+            json.dumps(first, sort_keys=True, separators=(",", ":")),
+            json.dumps(second, sort_keys=True, separators=(",", ":")),
+        )
 
-        with patch.object(micro_plugins, "public_proof_card", wraps=public_proof_card) as unused_proof:
-            compile_handoff_pack(state)
-        unused_proof.assert_not_called()
+    def test_no_network(self):
+        class Guard(socket.socket):
+            def __init__(self, *args, **kwargs):
+                raise AssertionError("network socket opened")
+
+        with patch("socket.socket", Guard):
+            packet = compile_handoff_packet(
+                {"mission_id": "HAND-001", "current_state": {"status": "ready"}},
+                {"mission_id": "HAND-002", "objective": "offline", "current_state": {"status": "ready"}},
+            )
+        self.assertEqual(packet["parent_mission_id"], "HAND-001")
 
     def test_rejects_non_json_and_non_objects(self):
         with self.assertRaises(TypeError):
-            compile_handoff_pack("not-an-object")
+            compile_handoff_packet("not-an-object", {"mission_id": "HAND-002"})
         with self.assertRaises(TypeError):
-            compile_handoff_pack(["array"])
+            compile_handoff_packet({"mission_id": "HAND-001"}, ["array"])
 
-        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as handle:
-            handle.write("not-json")
-            path = handle.name
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as previous:
+            previous.write('{"mission_id": "HAND-001"}')
+            previous_path = previous.name
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as current:
+            current.write("not-json")
+            current_path = current.name
         with self.assertRaises(json.JSONDecodeError):
-            handoff_pack_main([path])
-
-    def test_copies_optional_envelope_fields_without_inventing_them(self):
-        pack = compile_handoff_pack({
-            "mission_id": "HAND-001",
-            "objective": "continue",
-            "produced_at": "2026-09-01T00:00:00+00:00",
-            "produced_refs": ["sha:abc"],
-            "limitations": ["caller-supplied only"],
-        })
-        self.assertEqual(pack["produced_at"], "2026-09-01T00:00:00+00:00")
-        self.assertEqual(pack["produced_refs"], ["sha:abc"])
-        self.assertEqual(pack["limitations"], ["caller-supplied only"])
-        self.assertNotIn("costs", pack)
-        self.assertNotIn("proof", pack)
+            handoff_pack_main([previous_path, current_path])
 
 
 class MicroPluginCliTests(unittest.TestCase):
@@ -401,24 +410,17 @@ class MicroPluginCliTests(unittest.TestCase):
         with patch("sys.stdout", buf):
             self.assertEqual(
                 handoff_pack_main([
-                    str(ROOT / "examples/mission-packet.synthetic.json"),
-                    "--receipt",
-                    str(ROOT / "examples/internal-receipt.synthetic.json"),
-                    "--from-run",
-                    "run-public-a",
-                    "--to-run",
-                    "run-public-b",
+                    str(ROOT / "examples/handoff-previous.synthetic.json"),
+                    str(ROOT / "examples/handoff-current.synthetic.json"),
                 ]),
                 0,
             )
         pack = json.loads(buf.getvalue())
-        self.assertEqual(pack["schema_version"], "neuruh.handoff-pack.v0.1")
-        self.assertEqual(pack["context"]["mission_id"], "PACK-001")
-        self.assertEqual(pack["from_run"], "run-public-a")
-        self.assertEqual(pack["to_run"], "run-public-b")
-        self.assertEqual(pack["last_proof"]["status"], "PASS")
-        self.assertNotIn("private_recipe", pack["last_proof"])
-        self.assertNotIn("delta", pack)
+        self.assertEqual(pack["parent_mission_id"], "HAND-001")
+        self.assertEqual(pack["mission_id"], "HAND-002")
+        self.assertNotIn("this-is-a-lie", pack.get("changed_since_last_run", []))
+        self.assertNotIn("giant_payload", pack)
+        self.assertTrue(any(item.startswith(("added:", "changed:", "removed:")) for item in pack["changed_since_last_run"]))
 
 
 if __name__ == "__main__":

@@ -2,15 +2,14 @@
   "schema_version": "neuruh.public-release-court.v1",
   "mission": "NEURUH-PUBLIC-RELEASE-001",
   "candidate": "neuruh-handoff-pack",
-  "lane": "C",
   "repository": "NeuruhAI/neuruh-sovereign-agent-starter",
-  "base_sha": "d0d1c014c67b1ff169c88ca746b1297b736f71c2",
-  "current_release": "v0.1.4-alpha",
+  "base_sha": "b322e7f6da8125352158934c76fd6f84a5d3085c",
+  "current_release": "v0.1.5-alpha",
   "decision": "APPROVED_TO_IMPLEMENT",
   "courts": {
     "value": {
       "status": "PASS",
-      "finding": "context-pack, state-diff, and proof-card exist as separate edge utilities. None of them assemble a portable continuation envelope from caller-supplied pieces. A CLI that composes those functions into one bounded pack (context required; delta and last_proof only when supplied) is a real public edge utility: WORTH_IT. No model, no network, no authority."
+      "finding": "Form A. Thin composition of compile_context_packet + diff_public_state. parent_mission_id is required. changed_since_last_run is derived as pointer-heavy path strings, not value dumps. CLI plus skill; not a fourth MCP tool."
     },
     "duplication": {
       "status": "PASS",
@@ -21,11 +20,11 @@
         "neuruh-state-diff",
         "neuruh-sovereign-agent"
       ],
-      "finding": "UNIQUE. No package in this repo assembles a continuation envelope. context-pack compiles one state. state-diff compares two objects. proof-card projects one record. cheap-route scores routes. The starter core writes receipts and manifests. handoff-pack calls the existing functions; it does not reimplement them."
+      "finding": "Calls the existing functions. Does not reimplement packing or diffing. The 0.1.5-alpha envelope is replaced by this packet shape."
     },
     "public_boundary": {
       "status": "PASS",
-      "finding": "CLEAR. Caller-supplied JSON only. Fail-closed on private/conversational keys (same refusal set as context-pack / state-diff). No AXON/Mother/Governance/recipes/weights/scoring/prompts/customer data/production authority/private URLs. No private-repo imports. from/to are operator-declared public labels. CLI only; not a fourth MCP tool or fourth skill."
+      "finding": "Caller-supplied JSON only. Fail-closed on transcript/chat keys and nested private refs. No AXON/Mother/Governance/recipes/weights/scoring/prompts/customer data/production authority/private URLs. No private-repo imports. No fourth MCP tool."
     }
   },
   "not_implemented": [
@@ -36,7 +35,6 @@
   ],
   "limitations": [
     "Packs only caller-supplied public pieces. Grants no mutation or production authority.",
-    "Not a lifecycle attestation, private state store, or orchestration handoff.",
-    "from_run and to_run are operator-declared public labels, not runtime authority."
+    "Not a lifecycle attestation, private state store, or orchestration runtime."
   ]
 }

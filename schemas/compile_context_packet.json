@@ -8,6 +8,7 @@
       "additionalProperties": true,
       "properties": {
         "mission_id": {"type": "string"},
+        "parent_mission_id": {"type": "string"},
         "objective": {"type": "string"},
         "current_state": {},
         "changed_since_last_run": {"type": "array"},
