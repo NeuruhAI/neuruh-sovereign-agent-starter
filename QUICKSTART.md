@@ -2,7 +2,7 @@
 
 Public micro-plugin CLIs plus a local Agent Plugin / stdio MCP package. This repository is **not Neuruh Core, AXON, Mother, IAR, DeedSonar, or JGI**.
 
-Release line: `v0.1.8-alpha`.
+Release line: `v0.1.9-alpha`.
 
 PyPI is not yet the canonical install path. Install from the immutable GitHub tag.
 
@@ -33,7 +33,7 @@ Python 3.11+.
 Tagged clone, including demo fixtures:
 
 ```bash
-git clone --branch v0.1.8-alpha --depth 1 https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git
+git clone --branch v0.1.9-alpha --depth 1 https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git
 cd neuruh-sovereign-agent-starter
 python3 -m venv .venv
 source .venv/bin/activate
@@ -44,7 +44,7 @@ CLI-only pip-from-git install:
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
-pip install "neuruh-sovereign-agent-starter @ git+https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git@v0.1.8-alpha"
+pip install "neuruh-sovereign-agent-starter @ git+https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git@v0.1.9-alpha"
 ```
 
 Confirm:
@@ -53,7 +53,7 @@ Confirm:
 python -c "import importlib.metadata as m; print(m.version('neuruh-sovereign-agent-starter'))"
 ```
 
-Expected distribution version: `0.1.8a0`.
+Expected distribution version: `0.1.9a0`.
 
 ## Demo A — bounded context
 

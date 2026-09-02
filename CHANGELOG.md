@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.9a0 — v0.1.9-alpha
+
+- **Fix the stdio MCP transport.** The server framed messages LSP-style with `Content-Length` headers. MCP's stdio transport is newline-delimited JSON, which is what every MCP client writes, so a spec-compliant client hung at `initialize` and no tool was ever reachable over the wire. `_read_message` now reads newline-delimited JSON, still accepts `Content-Length` framing from older callers, and `_write_message` replies in whichever framing the client used.
+- **Close the test blind spot that hid it.** The suite drove `handle_rpc` directly and its one transport test wrote `Content-Length` frames itself, so it agreed with the server about a framing no MCP client uses. Added a subprocess round-trip over newline-delimited JSON (it fails against the 0.1.8-alpha transport) plus direct framing-detection assertions.
+- No tool, schema, permission, or public-boundary change. `context_pack`, `cheap_route`, and `proof_card` are unchanged.
+
 ## 0.1.7a0 — v0.1.7-alpha
 
 - Docs and adoption only. No new primitive.

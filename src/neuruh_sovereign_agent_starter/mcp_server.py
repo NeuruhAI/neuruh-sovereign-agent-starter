@@ -18,7 +18,7 @@ from .micro_plugins import (
 
 PROTOCOL_VERSION = "2024-11-05"
 SERVER_NAME = "neuruh-public-micro-plugins"
-SERVER_VERSION = "0.1.8-alpha"
+SERVER_VERSION = "0.1.9-alpha"
 TOOL_NAMES = ("context_pack", "cheap_route", "proof_card")
 
 CONTEXT_PACK_INPUT_SCHEMA: dict[str, Any] = {
@@ -232,25 +232,48 @@ def handle_rpc(message: Mapping[str, Any]) -> dict[str, Any] | None:
     return _error(id_, -32601, f"Method not found: {method}")
 
 
-def _read_message(stdin) -> dict[str, Any] | None:
-    headers: dict[str, str] = {}
+def _read_message(stdin) -> tuple[dict[str, Any] | None, str]:
+    """Read one JSON-RPC message and report the framing the client used.
+
+    MCP's stdio transport is newline-delimited JSON: one JSON object per line.
+    That is what every MCP client writes, so it is the default here.
+
+    LSP-style ``Content-Length`` framing is also accepted, because an earlier
+    build of this server spoke only that dialect. Replies echo whichever
+    framing the client used, so both kinds of client work.
+    """
     while True:
         line = stdin.readline()
         if not line:
-            return None
-        if line in (b"\r\n", b"\n"):
-            break
-        decoded = line.decode("ascii")
-        key, _, value = decoded.partition(":")
-        headers[key.strip().lower()] = value.strip()
-    length = int(headers["content-length"])
-    body = stdin.read(length)
-    return json.loads(body.decode("utf-8"))
+            return None, "ndjson"
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped[:15].lower().startswith(b"content-length:"):
+            headers: dict[str, str] = {}
+            decoded = line.decode("ascii")
+            key, _, value = decoded.partition(":")
+            headers[key.strip().lower()] = value.strip()
+            while True:
+                header_line = stdin.readline()
+                if not header_line:
+                    return None, "lsp"
+                if header_line in (b"\r\n", b"\n"):
+                    break
+                decoded = header_line.decode("ascii")
+                key, _, value = decoded.partition(":")
+                headers[key.strip().lower()] = value.strip()
+            body = stdin.read(int(headers["content-length"]))
+            return json.loads(body.decode("utf-8")), "lsp"
+        return json.loads(stripped.decode("utf-8")), "ndjson"
 
 
-def _write_message(stdout, message: Mapping[str, Any]) -> None:
+def _write_message(stdout, message: Mapping[str, Any], framing: str = "ndjson") -> None:
     body = json.dumps(message, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
-    stdout.write(f"Content-Length: {len(body)}\r\n\r\n".encode("ascii") + body)
+    if framing == "lsp":
+        stdout.write(f"Content-Length: {len(body)}\r\n\r\n".encode("ascii") + body)
+    else:
+        stdout.write(body + b"\n")
     stdout.flush()
 
 
@@ -259,14 +282,14 @@ def serve_stdio(stdin=None, stdout=None) -> None:
     stdout = stdout or sys.stdout.buffer
     while True:
         try:
-            message = _read_message(stdin)
+            message, framing = _read_message(stdin)
         except (OSError, ValueError, json.JSONDecodeError, KeyError, UnicodeDecodeError):
             break
         if message is None:
             break
         response = handle_rpc(message)
         if response is not None:
-            _write_message(stdout, response)
+            _write_message(stdout, response, framing)
 
 
 def main() -> int:

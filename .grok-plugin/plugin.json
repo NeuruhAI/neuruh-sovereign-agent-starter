@@ -1,6 +1,6 @@
 {
   "name": "neuruh-public-micro-plugins",
-  "version": "0.1.8-alpha",
+  "version": "0.1.9-alpha",
   "description": "Bound agent context, route work economically, hand off state cleanly, and publish proof safely. Offline stdio MCP; no account or API key.",
   "author": {
     "name": "Jeramie Hicks / Neuruh",

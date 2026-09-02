@@ -8,7 +8,7 @@ from neuruh_sovereign_agent_starter.mcp_server import SERVER_NAME, SERVER_VERSIO
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_NAME = "neuruh-public-micro-plugins"
-PLUGIN_VERSION = "0.1.8-alpha"
+PLUGIN_VERSION = "0.1.9-alpha"
 
 
 class DistributionManifestTests(unittest.TestCase):

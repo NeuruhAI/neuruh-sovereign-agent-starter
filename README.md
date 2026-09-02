@@ -43,7 +43,7 @@ Python 3.11+.
 Tagged source install:
 
 ```bash
-git clone --branch v0.1.8-alpha --depth 1 https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git
+git clone --branch v0.1.9-alpha --depth 1 https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git
 cd neuruh-sovereign-agent-starter
 python3 -m venv .venv
 source .venv/bin/activate
@@ -54,7 +54,7 @@ Pip directly from the immutable Git tag:
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
-pip install "neuruh-sovereign-agent-starter @ git+https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git@v0.1.8-alpha"
+pip install "neuruh-sovereign-agent-starter @ git+https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git@v0.1.9-alpha"
 ```
 
 No account or API key is required. Install needs network access for the pinned public GitHub dependencies; the micro-plugin transforms and default example run make no runtime network calls.
