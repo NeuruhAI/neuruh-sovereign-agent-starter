@@ -1,0 +1,11 @@
+{
+  "mission_id": "HAND-001",
+  "objective": "compile a bounded execution packet from known pointers",
+  "current_state": {
+    "status": "blocked",
+    "blocker": "missing receipt",
+    "counts": {"done": 1}
+  },
+  "canonical_refs": ["sha:synthetic-previous", "file:MICRO_PLUGINS.md"],
+  "next_action": "wait for receipt"
+}

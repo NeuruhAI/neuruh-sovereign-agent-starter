@@ -1,0 +1,18 @@
+{
+  "mission_id": "HAND-002",
+  "objective": "continue after the public receipt landed",
+  "current_state": {
+    "status": "ready",
+    "counts": {"done": 2},
+    "receipt_ref": "sha:synthetic-receipt"
+  },
+  "changed_since_last_run": ["this-is-a-lie"],
+  "canonical_refs": ["sha:synthetic-previous", "sha:synthetic-receipt", "file:MICRO_PLUGINS.md"],
+  "known_failures": [],
+  "blockers": [],
+  "authority": {"actor": "operator", "scope": "public-demo"},
+  "budget": {"max_usd": 0},
+  "acceptance_test": "packet keeps parent_mission_id and derives path-only changed_since_last_run",
+  "next_action": "run handoff pack",
+  "giant_payload": "ignored-unknown-field"
+}

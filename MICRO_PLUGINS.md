@@ -2,7 +2,7 @@
 
 Five standalone, deterministic utilities extracted for public use. They do not connect to the private Neuruh runtime and contain no production authority, private policies, recipes, prompts, customer data, or internal topology.
 
-This package is **not** AXON, Mother, IAR, DeedSonar, JGI, or Governance Core. The Agent Plugin wraps the three functions in sections 1–3 only. State-diff and handoff-pack stay CLI utilities.
+This package is **not** AXON, Mother, IAR, DeedSonar, JGI, or Governance Core. The Agent Plugin wraps the three functions in sections 1–3 only. State-diff stays a CLI utility. Handoff-pack is CLI plus skill, not an MCP tool.
 
 ## 1. Context Pack
 
@@ -12,7 +12,7 @@ Compile a small execution packet instead of replaying an entire chat or transcri
 neuruh-context-pack mission.json
 ```
 
-Accepted fields are intentionally narrow: mission ID, objective, current state, delta, canonical refs, known failures, blockers, authority, budget, acceptance test, and next action. Raw chat/transcript keys are rejected. Default output ceiling is 4096 bytes.
+Accepted fields are intentionally narrow: mission ID, parent mission ID, objective, current state, delta, canonical refs, known failures, blockers, authority, budget, acceptance test, and next action. Raw chat/transcript keys are rejected. Default output ceiling is 4096 bytes.
 
 ## 2. Cheap Route
 
@@ -57,15 +57,19 @@ Output is path-sorted added/removed/changed entries plus an `unchanged` flag. Ne
 
 ## 5. Handoff Pack
 
-Assemble a portable continuation envelope from caller-supplied public pieces.
+Compile a bounded agent-to-agent continuation packet from previous and current public state.
 
 ```bash
-neuruh-handoff-pack STATE.json [--before BEFORE.json] [--after AFTER.json] [--receipt RECEIPT.json] [--from-run ID] [--to-run ID] [--max-bytes N]
+neuruh-handoff-pack previous.json current.json [--max-bytes N]
 ```
 
-The envelope always includes `schema_version` (`neuruh.handoff-pack.v0.1`) and `context` from `compile_context_packet`. Optional `delta` is included only when both `--before` and `--after` are supplied, and then it is exactly `diff_public_state`. Optional `last_proof` is included only when `--receipt` is supplied, and then it is exactly `public_proof_card`. Optional `from_run` / `to_run` are operator-declared public labels. Optional `produced_at`, `produced_refs`, and `limitations` are copied only when the caller put them on the state object. Timestamps, mission fields, next actions, costs, and proof fields are never invented.
+This is a thin composition of `diff_public_state` and `compile_context_packet`. It does not reimplement packing or diffing. `parent_mission_id` is required and taken from `previous.mission_id` (or `previous.mission`). `changed_since_last_run` is derived as pointer-heavy added/changed/removed path strings; a caller-supplied delta is ignored. Transcript/chat keys are refused. Nested private keys are refused by state-diff. The result is then packed so the existing size bound and unknown-field drop still apply.
 
-Private or conversational keys are refused. The bundle ceiling is 4096 bytes; the helper refuses rather than truncating the spine. This helper packs caller-supplied pieces only; it grants no authority.
+```text
+previous + current -> derived path delta + spine -> bounded handoff packet
+```
+
+This helper grants no authority. It is not an MCP tool.
 
 ## Why these exist
 
@@ -76,7 +80,7 @@ big context -> bounded packet
 candidate routes -> cheapest capable route
 internal receipt -> public-safe proof card
 before/after state -> public-safe delta
-caller-supplied pieces -> portable continuation envelope
+previous + current -> bounded handoff packet
 ```
 
 They are edge utilities, not a second orchestration system.
@@ -90,7 +94,7 @@ neuruh-context-pack examples/mission-packet.synthetic.json
 neuruh-cheap-route examples/route-candidates.synthetic.json --min-success 0.8
 neuruh-proof-card examples/internal-receipt.synthetic.json
 neuruh-state-diff before.json after.json
-neuruh-handoff-pack examples/mission-packet.synthetic.json --receipt examples/internal-receipt.synthetic.json --from-run run-a --to-run run-b
+neuruh-handoff-pack examples/handoff-previous.synthetic.json examples/handoff-current.synthetic.json
 python -m neuruh_sovereign_agent_starter.plugin_demo
 ```
 
@@ -105,10 +109,10 @@ neuruh-context-pack - < examples/mission-packet.synthetic.json
 This repo root is an Agent Plugin:
 
 - name: `neuruh-public-micro-plugins`
-- skills: `neuruh-context-pack`, `neuruh-cheap-route`, `neuruh-proof-card`
+- skills: `neuruh-context-pack`, `neuruh-cheap-route`, `neuruh-proof-card`, `neuruh-handoff-pack`
 - MCP tools: `context_pack`, `cheap_route`, `proof_card`
 
-The MCP server is a stdio JSON-RPC adapter. It imports the three functions above. It does not reimplement them and does not talk to a network. `neuruh-state-diff` and `neuruh-handoff-pack` are CLI-only and are not MCP tools.
+The MCP server is a stdio JSON-RPC adapter. It imports the three functions above. It does not reimplement them and does not talk to a network. `neuruh-state-diff` is CLI-only. `neuruh-handoff-pack` is CLI plus skill and is not an MCP tool.
 
 Copy the repo as a **real directory** into Cursor local plugins. A symlink that points outside `~/.cursor/plugins/local` is rejected:
 
@@ -118,4 +122,4 @@ rm -rf ~/.cursor/plugins/local/neuruh-public-micro-plugins
 cp -R . ~/.cursor/plugins/local/neuruh-public-micro-plugins
 ```
 
-Then reload the Cursor window. Customize should show plugin name `neuruh-public-micro-plugins`, three skills, and three MCP tools. This is not a Cursor Marketplace submission.
+Then reload the Cursor window. Customize should show plugin name `neuruh-public-micro-plugins`, four skills, and three MCP tools. This is not a Cursor Marketplace submission.
