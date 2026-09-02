@@ -383,8 +383,13 @@ class HandoffPackTests(unittest.TestCase):
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as current:
             current.write("not-json")
             current_path = current.name
-        with self.assertRaises(json.JSONDecodeError):
-            handoff_pack_main([previous_path, current_path])
+        err = io.StringIO()
+        with patch("sys.stderr", err), patch("sys.stdout", io.StringIO()):
+            self.assertEqual(handoff_pack_main([previous_path, current_path]), 1)
+        message = err.getvalue()
+        self.assertTrue(message.strip())
+        self.assertEqual(message.count("\n"), 1)
+        self.assertNotIn("Traceback", message)
 
 
 class MicroPluginCliTests(unittest.TestCase):
@@ -421,6 +426,17 @@ class MicroPluginCliTests(unittest.TestCase):
         self.assertNotIn("this-is-a-lie", pack.get("changed_since_last_run", []))
         self.assertNotIn("giant_payload", pack)
         self.assertTrue(any(item.startswith(("added:", "changed:", "removed:")) for item in pack["changed_since_last_run"]))
+
+    def test_cli_prints_one_stderr_line_on_transcript_refusal(self):
+        err = io.StringIO()
+        with patch("sys.stderr", err), patch("sys.stdout", io.StringIO()):
+            rc = context_pack_main([str(ROOT / "examples/demos/bloated-mission.transcript-refuse.synthetic.json")])
+        self.assertEqual(rc, 1)
+        message = err.getvalue()
+        self.assertIn("transcript", message)
+        self.assertEqual(message.count("\n"), 1)
+        self.assertNotIn("Traceback", message)
+        self.assertNotIn("ValueError", message)
 
 
 if __name__ == "__main__":

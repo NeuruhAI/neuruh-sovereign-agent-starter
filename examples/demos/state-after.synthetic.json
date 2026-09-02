@@ -1,0 +1,16 @@
+{
+  "mission_id": "DEMO-D2",
+  "objective": "continue after the public receipt landed",
+  "current_state": {
+    "status": "ready",
+    "counts": {"done": 2},
+    "receipt_ref": "sha:synthetic-receipt"
+  },
+  "changed_since_last_run": ["caller-supplied-delta-is-ignored"],
+  "canonical_refs": [
+    "file:examples/demos/state-before.synthetic.json",
+    "file:examples/demos/state-after.synthetic.json"
+  ],
+  "next_action": "run handoff pack",
+  "giant_payload": "unknown key; context-pack drops this"
+}

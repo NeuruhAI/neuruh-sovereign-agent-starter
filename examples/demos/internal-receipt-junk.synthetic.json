@@ -1,0 +1,22 @@
+{
+  "mission_id": "DEMO-C",
+  "mission": "TINKABOT-DISTRIBUTION-002",
+  "artifact": "neuruh-sovereign-agent-starter",
+  "version": "0.1.7-alpha",
+  "status": "PASS",
+  "outcome": "docs and adoption packet; not a production receipt",
+  "commit_sha": "docs00000000000000000000000000000000000000",
+  "tests": {"command": "python -m unittest discover -s tests -v"},
+  "public_url": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter",
+  "limitations": [
+    "Packaging and docs release only. Not a production receipt.",
+    "Synthetic fixture. commit_sha is a placeholder."
+  ],
+  "generated_at": "2026-09-02T00:00:00+00:00",
+  "private_recipe": {"weights": [9, 8, 7]},
+  "prompt": "synthetic factory string; omit",
+  "transcript": "proof-card allowlists; this key is dropped not refused",
+  "database_table": "internal_rows",
+  "axon_route": "must-be-stripped",
+  "mother_state": "must-be-stripped"
+}

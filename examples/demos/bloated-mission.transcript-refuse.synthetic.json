@@ -1,0 +1,6 @@
+{
+  "mission_id": "DEMO-A-REFUSE",
+  "objective": "show that raw transcript keys are refused",
+  "next_action": "do not pack this",
+  "transcript": "synthetic chat log; context-pack must refuse rather than copy"
+}

@@ -1,0 +1,11 @@
+{
+  "mission_id": "DEMO-D1",
+  "objective": "wait until the public receipt exists",
+  "current_state": {
+    "status": "blocked",
+    "blocker": "missing receipt",
+    "counts": {"done": 1}
+  },
+  "canonical_refs": ["file:examples/demos/state-before.synthetic.json"],
+  "next_action": "wait for receipt"
+}

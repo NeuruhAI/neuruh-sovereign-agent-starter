@@ -2,7 +2,7 @@
   "mission_id": "PACK-001",
   "mission": "public micro-plugin packaging demo",
   "artifact": "neuruh-public-micro-plugins",
-  "version": "0.1.4-alpha",
+  "version": "0.1.7-alpha",
   "status": "PASS",
   "outcome": "synthetic proof card",
   "commit_sha": "synthetic00000000000000000000000000000000",

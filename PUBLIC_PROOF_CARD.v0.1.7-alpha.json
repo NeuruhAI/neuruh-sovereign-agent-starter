@@ -1,0 +1,20 @@
+{
+  "artifact": "neuruh-sovereign-agent-starter",
+  "commit_sha": "docs00000000000000000000000000000000000000",
+  "generated_at": "2026-09-02T00:00:00+00:00",
+  "limitations": [
+    "This is a packaging/docs adoption release, not a production receipt.",
+    "commit_sha is a synthetic placeholder until the merge SHA is known.",
+    "Not published to PyPI. Not submitted to Cursor Marketplace."
+  ],
+  "mission": "TINKABOT-DISTRIBUTION-002",
+  "mission_id": "TINKABOT-DISTRIBUTION-002",
+  "outcome": "public packaging and docs; not a production receipt",
+  "public_url": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter",
+  "status": "PASS",
+  "tests": {
+    "command": "python -m unittest discover -s tests -v",
+    "note": "PR CI must be green before merge"
+  },
+  "version": "0.1.7-alpha"
+}

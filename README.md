@@ -2,6 +2,56 @@
 
 [![ci](https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/actions/workflows/ci.yml)
 
+Public micro-plugin CLIs (and a local Agent Plugin) plus a runnable governed-exec starter composed from Neuruh Public Commons libraries. This is not Neuruh Core.
+
+**Stranger path (install + three demos in under 60 seconds):** [`QUICKSTART.md`](QUICKSTART.md)
+
+## Public micro-plugins
+
+| CLI | What it does |
+| --- | --- |
+| `neuruh-context-pack` | Bounded execution packet. Unknown keys dropped. Transcript/chat refused. |
+| `neuruh-cheap-route` | Cheapest candidate above a success floor. |
+| `neuruh-proof-card` | Public allowlist projection. Private junk omitted. |
+| `neuruh-state-diff` | Structural before/after delta. CLI only. |
+| `neuruh-handoff-pack` | Form A continuation packet from `previous.json` + `current.json`. CLI + skill; not MCP. |
+
+MCP tools (exactly three): `context_pack`, `cheap_route`, `proof_card`. See [`MICRO_PLUGINS.md`](MICRO_PLUGINS.md).
+
+### Tagged install
+
+Live tag until this docs release: `v0.1.6-alpha`. After merge, switch to `v0.1.7-alpha`. Not on PyPI.
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install "neuruh-sovereign-agent-starter @ git+https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git@v0.1.6-alpha"
+# after this PR's release, switch the tag to v0.1.7-alpha
+```
+
+Or clone the tag and `pip install .` (needed for `examples/demos/`):
+
+```bash
+git clone --branch v0.1.6-alpha --depth 1 https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git
+cd neuruh-sovereign-agent-starter
+python3 -m venv .venv && source .venv/bin/activate
+pip install .
+```
+
+### Three demos
+
+```bash
+neuruh-context-pack examples/demos/bloated-mission.synthetic.json
+# -> mission_id DEMO-A; ignored_blob absent
+
+neuruh-cheap-route examples/demos/three-routes.synthetic.json --min-success 0.8
+# -> candidate_id deterministic-l0, layer L0
+
+neuruh-proof-card examples/demos/internal-receipt-junk.synthetic.json
+# -> status PASS; private_recipe / prompt / transcript omitted
+```
+
+## Governed-exec starter
+
 A runnable reference agent composed from the Neuruh Public Commons libraries.
 
 It demonstrates a governed run in which model output is evidence, never command authority:
@@ -26,12 +76,14 @@ Installing needs network access to fetch the pinned dependencies from GitHub. Th
 ## Install
 
 ```bash
-git clone https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git
+git clone --branch v0.1.6-alpha --depth 1 https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git
 cd neuruh-sovereign-agent-starter
 python -m venv .venv
 source .venv/bin/activate
 pip install .
 ```
+
+Use `--branch v0.1.7-alpha` after this docs release is tagged. Cloning `HEAD`/`main` is not the stranger path.
 
 Installing pulls each dependency from an immutable public tag; nothing resolves to a
 branch or a local path.
@@ -166,19 +218,6 @@ observation receipt. It does not add a way to choose the command.
 ```bash
 python -m unittest discover -s tests -v
 ```
-
-## Public micro-plugins
-
-Public-safe utilities shipped as CLIs. Three of them (`context_pack`, `cheap_route`, `proof_card`) are also a local Agent Plugin that imports the existing functions. `neuruh-state-diff` stays CLI-only. `neuruh-handoff-pack` is CLI plus skill, not an MCP tool. Not a second orchestrator. See [`MICRO_PLUGINS.md`](MICRO_PLUGINS.md).
-
-```bash
-neuruh-context-pack examples/mission-packet.synthetic.json
-neuruh-cheap-route examples/route-candidates.synthetic.json
-neuruh-proof-card examples/internal-receipt.synthetic.json
-neuruh-handoff-pack examples/handoff-previous.synthetic.json examples/handoff-current.synthetic.json
-```
-
-To load the plugin locally, copy this repo as a real directory to `~/.cursor/plugins/local/neuruh-public-micro-plugins` (not a symlink out). Cursor should show `neuruh-public-micro-plugins`, four skills, and MCP tools `context_pack`, `cheap_route`, and `proof_card`.
 
 ## Safety boundary
 
