@@ -438,6 +438,20 @@ class MicroPluginCliTests(unittest.TestCase):
         self.assertNotIn("Traceback", message)
         self.assertNotIn("ValueError", message)
 
+    def test_form_a_cli_rejects_envelope_flags(self):
+        err = io.StringIO()
+        with patch("sys.stderr", err), patch("sys.stdout", io.StringIO()):
+            with self.assertRaises(SystemExit) as ctx:
+                handoff_pack_main([
+                    str(ROOT / "examples/handoff-previous.synthetic.json"),
+                    str(ROOT / "examples/handoff-current.synthetic.json"),
+                    "--before", "x.json",
+                    "--after", "y.json",
+                    "--receipt", "z.json",
+                ])
+        self.assertEqual(ctx.exception.code, 2)
+        self.assertIn("unrecognized arguments", err.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

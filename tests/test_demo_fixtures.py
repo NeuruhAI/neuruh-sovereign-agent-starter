@@ -45,9 +45,6 @@ class DemoFixturePresenceTests(unittest.TestCase):
             "bloated-mission.synthetic.json",
             "bloated-mission.transcript-refuse.synthetic.json",
             "three-routes.synthetic.json",
-            "internal-receipt-junk.synthetic.json",
-            "state-before.synthetic.json",
-            "state-after.synthetic.json",
             "docs-release-receipt.synthetic.json",
         ]
         for name in required:
@@ -112,17 +109,23 @@ class DemoCProofCardTests(unittest.TestCase):
 
 
 class DemoDStateAndHandoffTests(unittest.TestCase):
-    def test_state_diff_and_form_a_handoff(self):
-        before = json.loads((DEMOS / "state-before.synthetic.json").read_text(encoding="utf-8"))
-        after = json.loads((DEMOS / "state-after.synthetic.json").read_text(encoding="utf-8"))
+    def test_reuses_tagged_form_a_fixtures(self):
+        previous = ROOT / "examples/handoff-previous.synthetic.json"
+        current = ROOT / "examples/handoff-current.synthetic.json"
+        self.assertTrue(previous.is_file())
+        self.assertTrue(current.is_file())
+        self.assertFalse((DEMOS / "state-before.synthetic.json").exists())
+        self.assertFalse((DEMOS / "state-after.synthetic.json").exists())
+        before = json.loads(previous.read_text(encoding="utf-8"))
+        after = json.loads(current.read_text(encoding="utf-8"))
         delta = diff_public_state(before, after)
         self.assertFalse(delta["unchanged"])
         self.assertTrue(any(item["path"] == "current_state.status" for item in delta["changed"]))
         packet = compile_handoff_packet(before, after)
-        self.assertEqual(packet["parent_mission_id"], "DEMO-D1")
-        self.assertEqual(packet["mission_id"], "DEMO-D2")
+        self.assertEqual(packet["parent_mission_id"], "HAND-001")
+        self.assertEqual(packet["mission_id"], "HAND-002")
         self.assertNotIn("giant_payload", packet)
-        self.assertNotIn("caller-supplied-delta-is-ignored", packet.get("changed_since_last_run", []))
+        self.assertNotIn("this-is-a-lie", packet.get("changed_since_last_run", []))
         self.assertTrue(
             any(item.startswith(("added:", "changed:", "removed:")) for item in packet["changed_since_last_run"])
         )
@@ -159,8 +162,8 @@ class DemoCliShapeTests(unittest.TestCase):
         with patch("sys.stdout", buf):
             self.assertEqual(
                 state_diff_main([
-                    str(DEMOS / "state-before.synthetic.json"),
-                    str(DEMOS / "state-after.synthetic.json"),
+                    str(ROOT / "examples/handoff-previous.synthetic.json"),
+                    str(ROOT / "examples/handoff-current.synthetic.json"),
                 ]),
                 0,
             )
@@ -170,12 +173,12 @@ class DemoCliShapeTests(unittest.TestCase):
         with patch("sys.stdout", buf):
             self.assertEqual(
                 handoff_pack_main([
-                    str(DEMOS / "state-before.synthetic.json"),
-                    str(DEMOS / "state-after.synthetic.json"),
+                    str(ROOT / "examples/handoff-previous.synthetic.json"),
+                    str(ROOT / "examples/handoff-current.synthetic.json"),
                 ]),
                 0,
             )
-        self.assertEqual(json.loads(buf.getvalue())["parent_mission_id"], "DEMO-D1")
+        self.assertEqual(json.loads(buf.getvalue())["parent_mission_id"], "HAND-001")
 
     def test_no_network(self):
         class Guard(socket.socket):
@@ -210,6 +213,12 @@ class VersionSurfaceTests(unittest.TestCase):
         plugin = json.loads((ROOT / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(plugin["version"], "0.1.7-alpha")
         self.assertEqual(SERVER_VERSION, "0.1.7-alpha")
+
+    def test_handoff_skill_exists_and_state_diff_has_no_skill(self):
+        self.assertTrue((ROOT / "skills/neuruh-handoff-pack/SKILL.md").is_file())
+        self.assertFalse((ROOT / "skills/neuruh-state-diff").exists())
+        listed = json.loads((ROOT / "mcp.json").read_text(encoding="utf-8"))
+        self.assertEqual(listed["mcpServers"]["neuruh-public-micro-plugins"]["env"]["PYTHONPATH"], "${PLUGIN_ROOT}/src")
 
 
 if __name__ == "__main__":

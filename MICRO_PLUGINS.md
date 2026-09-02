@@ -58,7 +58,7 @@ Expected shape: `{"status": "PASS", ...}` with `private_recipe` / `prompt` / `tr
 Compute a deterministic structural delta between two JSON objects.
 
 ```bash
-neuruh-state-diff examples/demos/state-before.synthetic.json examples/demos/state-after.synthetic.json
+neuruh-state-diff examples/handoff-previous.synthetic.json examples/handoff-current.synthetic.json
 ```
 
 Output is path-sorted added/removed/changed entries plus an `unchanged` flag. Nested objects and list indexes are walked. Private or conversational keys (`prompt`, `recipe`, `weights`, `transcript`, customer fields, and private-runtime names) are refused rather than projected. Default output ceiling is 4096 bytes. This helper reports differences only; it grants no authority.
@@ -68,7 +68,7 @@ Output is path-sorted added/removed/changed entries plus an `unchanged` flag. Ne
 Compile a bounded agent-to-agent continuation packet from previous and current public state (Form A, from `v0.1.6-alpha`).
 
 ```bash
-neuruh-handoff-pack examples/demos/state-before.synthetic.json examples/demos/state-after.synthetic.json [--max-bytes N]
+neuruh-handoff-pack examples/handoff-previous.synthetic.json examples/handoff-current.synthetic.json [--max-bytes N]
 ```
 
 This is a thin composition of `diff_public_state` and `compile_context_packet`. It does not reimplement packing or diffing. `parent_mission_id` is required and taken from `previous.mission_id` (or `previous.mission`). `changed_since_last_run` is derived as pointer-heavy added/changed/removed path strings; a caller-supplied delta is ignored. Transcript/chat keys are refused. Nested private keys are refused by state-diff. The result is then packed so the existing size bound and unknown-field drop still apply.
@@ -79,7 +79,7 @@ previous + current -> derived path delta + spine -> bounded handoff packet
 
 This helper grants no authority. It is not an MCP tool. Skill: `skills/neuruh-handoff-pack/SKILL.md`.
 
-`v0.1.5-alpha` used an envelope CLI (`STATE.json [--before] [--after] [--receipt]`). Do not use that form on `v0.1.6-alpha` or later.
+`v0.1.5-alpha` used an envelope CLI (`STATE.json [--before] [--after] [--receipt]`). That form is rejected (exit 2) on `v0.1.6-alpha` and later. Use Form A: `previous.json current.json`.
 
 ## Why these exist
 
@@ -103,8 +103,8 @@ After a tagged `pip install .` from a checkout:
 neuruh-context-pack examples/demos/bloated-mission.synthetic.json
 neuruh-cheap-route examples/demos/three-routes.synthetic.json --min-success 0.8
 neuruh-proof-card examples/demos/internal-receipt-junk.synthetic.json
-neuruh-state-diff examples/demos/state-before.synthetic.json examples/demos/state-after.synthetic.json
-neuruh-handoff-pack examples/demos/state-before.synthetic.json examples/demos/state-after.synthetic.json
+neuruh-state-diff examples/handoff-previous.synthetic.json examples/handoff-current.synthetic.json
+neuruh-handoff-pack examples/handoff-previous.synthetic.json examples/handoff-current.synthetic.json
 ```
 
 `python -m neuruh_sovereign_agent_starter.plugin_demo` needs a git checkout: `examples/` is not in the wheel. Prefer the demos above.
@@ -120,7 +120,7 @@ neuruh-context-pack - < examples/demos/bloated-mission.synthetic.json
 This repo root is an Agent Plugin:
 
 - name: `neuruh-public-micro-plugins`
-- skills: `neuruh-context-pack`, `neuruh-cheap-route`, `neuruh-proof-card`, `neuruh-handoff-pack`
+- skills: `neuruh-context-pack`, `neuruh-cheap-route`, `neuruh-proof-card`, `neuruh-handoff-pack` (no `neuruh-state-diff` skill)
 - MCP tools: `context_pack`, `cheap_route`, `proof_card`
 
 The MCP server is a stdio JSON-RPC adapter. It imports the three functions above. It does not reimplement them and does not talk to a network. `neuruh-state-diff` is CLI-only. `neuruh-handoff-pack` is CLI plus skill and is not an MCP tool.

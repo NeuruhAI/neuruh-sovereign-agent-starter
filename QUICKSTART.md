@@ -2,7 +2,7 @@
 
 Public micro-plugin CLIs you can install from a Git tag and run in under 60 seconds. This repo is **not** Neuruh Core, AXON, Mother, IAR, DeedSonar, or JGI.
 
-PyPI: **not published**. Cursor Marketplace: **not submitted**. Install from a GitHub tag. Local Agent Plugin only.
+PyPI: **404 / not published**. Cursor Marketplace: **not submitted**. Install from a GitHub tag. Local Agent Plugin only.
 
 ## 30-second why
 
@@ -66,7 +66,9 @@ Older live tag, still valid:
 pip install "neuruh-sovereign-agent-starter @ git+https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git@v0.1.5-alpha"
 ```
 
-`v0.1.5-alpha` used the envelope CLI `neuruh-handoff-pack STATE.json [--before] [--after] [--receipt]`. From `v0.1.6-alpha` the Form A CLI is `neuruh-handoff-pack previous.json current.json [--max-bytes]`.
+`v0.1.5-alpha` used the envelope CLI `neuruh-handoff-pack STATE.json [--before] [--after] [--receipt]`. From `v0.1.6-alpha` the Form A CLI is `neuruh-handoff-pack previous.json current.json [--max-bytes]`. The old `--before` / `--after` / `--receipt` flags are rejected (exit 2).
+
+Install court on live `v0.1.6-alpha` (already run; do not repeat): `pip install .` from a tagged clone PASS in ~21s; dist `0.1.6a0`; import from site-packages; `PYTHONPATH` unset. PyPI remains 404.
 
 Confirm the installed version:
 
@@ -146,16 +148,18 @@ The checked-in output is [`PUBLIC_PROOF_CARD.v0.1.7-alpha.json`](PUBLIC_PROOF_CA
 
 ## Optional Demo D — state-diff + handoff-pack (Form A)
 
+Reuse the tagged Form A fixtures (do not add a second previous/current pair):
+
 ```bash
-neuruh-state-diff examples/demos/state-before.synthetic.json examples/demos/state-after.synthetic.json
-neuruh-handoff-pack examples/demos/state-before.synthetic.json examples/demos/state-after.synthetic.json
+neuruh-state-diff examples/handoff-previous.synthetic.json examples/handoff-current.synthetic.json
+neuruh-handoff-pack examples/handoff-previous.synthetic.json examples/handoff-current.synthetic.json
 ```
 
-State-diff prints `added` / `changed` / `removed` paths and `unchanged`. Handoff-pack prints a context packet with `parent_mission_id` taken from the previous `mission_id` and `changed_since_last_run` derived as `added:` / `changed:` / `removed:` path strings. Caller-supplied deltas are ignored. `giant_payload` is dropped.
+State-diff prints `added` / `changed` / `removed` paths and `unchanged`. Handoff-pack prints a context packet with `parent_mission_id` taken from the previous `mission_id` (`HAND-001`) and `changed_since_last_run` derived as `added:` / `changed:` / `removed:` path strings. Caller-supplied deltas are ignored. `giant_payload` is dropped.
 
 ## MCP
 
-Exactly three MCP tools: `context_pack`, `cheap_route`, `proof_card`. No fourth tool. `neuruh-state-diff` is CLI-only. `neuruh-handoff-pack` is CLI plus skill, not MCP.
+Exactly three MCP tools: `context_pack`, `cheap_route`, `proof_card`. No fourth tool. `neuruh-state-diff` is CLI-only (no skill). `neuruh-handoff-pack` is CLI plus skill, not MCP.
 
 ### Cursor: local plugin copy
 
@@ -194,6 +198,8 @@ Use the venv's `python3` if the module is not on the system interpreter.
 | `neuruh-cheap-route` | MCP tool `cheap_route` |
 | `neuruh-proof-card` | MCP tool `proof_card` |
 | `neuruh-handoff-pack` | CLI `neuruh-handoff-pack previous.json current.json` (not MCP) |
+
+There is **no** `neuruh-state-diff` skill. State-diff stays CLI-only.
 
 ## Governed-exec starter
 

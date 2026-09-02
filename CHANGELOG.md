@@ -3,7 +3,7 @@
 ## 0.1.7a0 — v0.1.7-alpha
 
 - Docs and adoption only. No new primitive.
-- Add `QUICKSTART.md`, `examples/demos/` fixtures for A/B/C plus optional state-diff/handoff, architecture-neutral diagram, and tagged pip-from-git install.
+- Add `QUICKSTART.md`, `examples/demos/` A/B/C fixtures, architecture-neutral diagram, and tagged pip-from-git install. Demo D reuses `examples/handoff-previous.synthetic.json` + `examples/handoff-current.synthetic.json`.
 - Lead README with the five public CLIs. Pin stranger clone commands to a Git tag.
 - Sync `plugin.json` and `mcp_server.SERVER_VERSION` from `0.1.4-alpha` to `0.1.7-alpha`.
 - Document local plugin copy (`PYTHONPATH=${PLUGIN_ROOT}/src`) versus pip-installed `python3 -m neuruh_sovereign_agent_starter.mcp_server` with no PYTHONPATH.

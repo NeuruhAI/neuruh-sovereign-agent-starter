@@ -16,11 +16,11 @@ Public micro-plugin CLIs (and a local Agent Plugin) plus a runnable governed-exe
 | `neuruh-state-diff` | Structural before/after delta. CLI only. |
 | `neuruh-handoff-pack` | Form A continuation packet from `previous.json` + `current.json`. CLI + skill; not MCP. |
 
-MCP tools (exactly three): `context_pack`, `cheap_route`, `proof_card`. See [`MICRO_PLUGINS.md`](MICRO_PLUGINS.md).
+MCP tools (exactly three): `context_pack`, `cheap_route`, `proof_card`. Handoff has a skill, not an MCP tool. State-diff is CLI-only (no skill). See [`MICRO_PLUGINS.md`](MICRO_PLUGINS.md).
 
 ### Tagged install
 
-Live tag until this docs release: `v0.1.6-alpha`. After merge, switch to `v0.1.7-alpha`. Not on PyPI.
+Live tag until this docs release: `v0.1.6-alpha`. After merge, switch to `v0.1.7-alpha`. PyPI 404; Git tag is the install path.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
