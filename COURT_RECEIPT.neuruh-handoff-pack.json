@@ -1,0 +1,42 @@
+{
+  "schema_version": "neuruh.public-release-court.v1",
+  "mission": "NEURUH-PUBLIC-RELEASE-001",
+  "candidate": "neuruh-handoff-pack",
+  "lane": "C",
+  "repository": "NeuruhAI/neuruh-sovereign-agent-starter",
+  "base_sha": "d0d1c014c67b1ff169c88ca746b1297b736f71c2",
+  "current_release": "v0.1.4-alpha",
+  "decision": "APPROVED_TO_IMPLEMENT",
+  "courts": {
+    "value": {
+      "status": "PASS",
+      "finding": "context-pack, state-diff, and proof-card exist as separate edge utilities. None of them assemble a portable continuation envelope from caller-supplied pieces. A CLI that composes those functions into one bounded pack (context required; delta and last_proof only when supplied) is a real public edge utility: WORTH_IT. No model, no network, no authority."
+    },
+    "duplication": {
+      "status": "PASS",
+      "checked_in_repo": [
+        "neuruh-context-pack",
+        "neuruh-cheap-route",
+        "neuruh-proof-card",
+        "neuruh-state-diff",
+        "neuruh-sovereign-agent"
+      ],
+      "finding": "UNIQUE. No package in this repo assembles a continuation envelope. context-pack compiles one state. state-diff compares two objects. proof-card projects one record. cheap-route scores routes. The starter core writes receipts and manifests. handoff-pack calls the existing functions; it does not reimplement them."
+    },
+    "public_boundary": {
+      "status": "PASS",
+      "finding": "CLEAR. Caller-supplied JSON only. Fail-closed on private/conversational keys (same refusal set as context-pack / state-diff). No AXON/Mother/Governance/recipes/weights/scoring/prompts/customer data/production authority/private URLs. No private-repo imports. from/to are operator-declared public labels. CLI only; not a fourth MCP tool or fourth skill."
+    }
+  },
+  "not_implemented": [
+    "neuruh-claim-receipt",
+    "neuruh-release-receipt",
+    "neuruh-offer-card",
+    "neuruh-public-redact"
+  ],
+  "limitations": [
+    "Packs only caller-supplied public pieces. Grants no mutation or production authority.",
+    "Not a lifecycle attestation, private state store, or orchestration handoff.",
+    "from_run and to_run are operator-declared public labels, not runtime authority."
+  ]
+}

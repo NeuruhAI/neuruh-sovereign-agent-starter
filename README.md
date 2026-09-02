@@ -169,12 +169,13 @@ python -m unittest discover -s tests -v
 
 ## Public micro-plugins
 
-Public-safe utilities shipped as CLIs. Three of them (`context_pack`, `cheap_route`, `proof_card`) are also a local Agent Plugin that imports the existing functions. Not a second orchestrator. See [`MICRO_PLUGINS.md`](MICRO_PLUGINS.md).
+Public-safe utilities shipped as CLIs. Three of them (`context_pack`, `cheap_route`, `proof_card`) are also a local Agent Plugin that imports the existing functions. `neuruh-state-diff` and `neuruh-handoff-pack` stay CLI-only. Not a second orchestrator. See [`MICRO_PLUGINS.md`](MICRO_PLUGINS.md).
 
 ```bash
 neuruh-context-pack examples/mission-packet.synthetic.json
 neuruh-cheap-route examples/route-candidates.synthetic.json
 neuruh-proof-card examples/internal-receipt.synthetic.json
+neuruh-handoff-pack examples/mission-packet.synthetic.json --receipt examples/internal-receipt.synthetic.json
 ```
 
 To load the plugin locally, copy this repo as a real directory to `~/.cursor/plugins/local/neuruh-public-micro-plugins` (not a symlink out). Cursor should show `neuruh-public-micro-plugins`, three skills, and MCP tools `context_pack`, `cheap_route`, and `proof_card`.

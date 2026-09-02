@@ -1,8 +1,8 @@
 # Neuruh Micro Plugins
 
-Four standalone, deterministic utilities extracted for public use. They do not connect to the private Neuruh runtime and contain no production authority, private policies, recipes, prompts, customer data, or internal topology.
+Five standalone, deterministic utilities extracted for public use. They do not connect to the private Neuruh runtime and contain no production authority, private policies, recipes, prompts, customer data, or internal topology.
 
-This package is **not** AXON, Mother, IAR, DeedSonar, JGI, or Governance Core. The Agent Plugin wraps the three functions in sections 1–3 only. State-diff stays a CLI utility.
+This package is **not** AXON, Mother, IAR, DeedSonar, JGI, or Governance Core. The Agent Plugin wraps the three functions in sections 1–3 only. State-diff and handoff-pack stay CLI utilities.
 
 ## 1. Context Pack
 
@@ -55,6 +55,18 @@ neuruh-state-diff before.json after.json
 
 Output is path-sorted added/removed/changed entries plus an `unchanged` flag. Nested objects and list indexes are walked. Private or conversational keys (`prompt`, `recipe`, `weights`, `transcript`, customer fields, and private-runtime names) are refused rather than projected. Default output ceiling is 4096 bytes. This helper reports differences only; it grants no authority.
 
+## 5. Handoff Pack
+
+Assemble a portable continuation envelope from caller-supplied public pieces.
+
+```bash
+neuruh-handoff-pack STATE.json [--before BEFORE.json] [--after AFTER.json] [--receipt RECEIPT.json] [--from-run ID] [--to-run ID] [--max-bytes N]
+```
+
+The envelope always includes `schema_version` (`neuruh.handoff-pack.v0.1`) and `context` from `compile_context_packet`. Optional `delta` is included only when both `--before` and `--after` are supplied, and then it is exactly `diff_public_state`. Optional `last_proof` is included only when `--receipt` is supplied, and then it is exactly `public_proof_card`. Optional `from_run` / `to_run` are operator-declared public labels. Optional `produced_at`, `produced_refs`, and `limitations` are copied only when the caller put them on the state object. Timestamps, mission fields, next actions, costs, and proof fields are never invented.
+
+Private or conversational keys are refused. The bundle ceiling is 4096 bytes; the helper refuses rather than truncating the spine. This helper packs caller-supplied pieces only; it grants no authority.
+
 ## Why these exist
 
 They are intentionally small enough to use outside Neuruh:
@@ -64,6 +76,7 @@ big context -> bounded packet
 candidate routes -> cheapest capable route
 internal receipt -> public-safe proof card
 before/after state -> public-safe delta
+caller-supplied pieces -> portable continuation envelope
 ```
 
 They are edge utilities, not a second orchestration system.
@@ -76,6 +89,8 @@ After `pip install .`:
 neuruh-context-pack examples/mission-packet.synthetic.json
 neuruh-cheap-route examples/route-candidates.synthetic.json --min-success 0.8
 neuruh-proof-card examples/internal-receipt.synthetic.json
+neuruh-state-diff before.json after.json
+neuruh-handoff-pack examples/mission-packet.synthetic.json --receipt examples/internal-receipt.synthetic.json --from-run run-a --to-run run-b
 python -m neuruh_sovereign_agent_starter.plugin_demo
 ```
 
@@ -93,7 +108,7 @@ This repo root is an Agent Plugin:
 - skills: `neuruh-context-pack`, `neuruh-cheap-route`, `neuruh-proof-card`
 - MCP tools: `context_pack`, `cheap_route`, `proof_card`
 
-The MCP server is a stdio JSON-RPC adapter. It imports the three functions above. It does not reimplement them and does not talk to a network.
+The MCP server is a stdio JSON-RPC adapter. It imports the three functions above. It does not reimplement them and does not talk to a network. `neuruh-state-diff` and `neuruh-handoff-pack` are CLI-only and are not MCP tools.
 
 Copy the repo as a **real directory** into Cursor local plugins. A symlink that points outside `~/.cursor/plugins/local` is rejected:
 
