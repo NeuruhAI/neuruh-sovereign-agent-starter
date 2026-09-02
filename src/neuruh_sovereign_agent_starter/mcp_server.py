@@ -18,7 +18,7 @@ from .micro_plugins import (
 
 PROTOCOL_VERSION = "2024-11-05"
 SERVER_NAME = "neuruh-public-micro-plugins"
-SERVER_VERSION = "0.1.7-alpha"
+SERVER_VERSION = "0.1.8-alpha"
 TOOL_NAMES = ("context_pack", "cheap_route", "proof_card")
 
 CONTEXT_PACK_INPUT_SCHEMA: dict[str, Any] = {
