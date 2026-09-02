@@ -89,5 +89,27 @@ class ClaudeMarketplaceTests(unittest.TestCase):
             self.assertIn("neuruh", keyword.lower(), "keywords must stay brand-scoped")
 
 
+class PublicSecuritySurfaceTests(unittest.TestCase):
+    """A security policy without a reporting route sends researchers nowhere.
+
+    The route must be a real public URL this project actually serves, not an
+    invented mailbox.
+    """
+
+    def setUp(self):
+        self.security = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
+
+    def test_security_policy_publishes_a_real_disclosure_route(self):
+        self.assertIn("https://neuruh.com/security", self.security)
+        self.assertIn("security.txt", self.security)
+        self.assertIn("Reporting a vulnerability", self.security)
+
+    def test_security_policy_states_scope_and_absence_of_authority(self):
+        lowered = self.security.lower()
+        self.assertIn("out of scope", lowered)
+        self.assertIn("no account", lowered)
+        self.assertIn("never executable authority", lowered)
+
+
 if __name__ == "__main__":
     unittest.main()
