@@ -37,6 +37,16 @@ previous + current -> handoff-pack  -> next-worker packet
 The point is deliberately boring: **the model should not also be your memory format, routing policy, handoff protocol, and proof system.**
 
 ## Install
+### Claude Code
+
+```
+/plugin marketplace add NeuruhAI/neuruh-sovereign-agent-starter
+/plugin install neuruh-public-micro-plugins@neuruh
+```
+
+Adds the three MCP tools (`context_pack`, `cheap_route`, `proof_card`) and four skills. Offline
+stdio after install. No account, no API key, no network at runtime.
+
 
 Python 3.11+.
 

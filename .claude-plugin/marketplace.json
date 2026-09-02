@@ -1,0 +1,28 @@
+{
+  "name": "neuruh",
+  "owner": {
+    "name": "Jeramie Hicks / Neuruh",
+    "url": "https://github.com/NeuruhAI"
+  },
+  "plugins": [
+    {
+      "name": "neuruh-public-micro-plugins",
+      "source": "./",
+      "description": "Public-safe agent operations: compile a bounded context packet, pick the cheapest capable route, project a public-safe proof card, diff public state, and build clean handoffs. Offline stdio MCP; no account or API key.",
+      "author": {
+        "name": "Jeramie Hicks / Neuruh"
+      },
+      "homepage": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter",
+      "repository": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter",
+      "license": "Apache-2.0",
+      "keywords": [
+        "neuruh",
+        "neuruh context pack",
+        "neuruh cheap route",
+        "neuruh proof card",
+        "neuruh handoff",
+        "neuruh state diff"
+      ]
+    }
+  ]
+}

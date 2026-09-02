@@ -14,16 +14,42 @@ This repository is the public-safe distribution edge for Neuruh agent-operations
 
 ## Platform status
 
+Each state below was re-proven on 2026-09-02 against `v0.1.9-alpha`, not inherited from a previous
+receipt. "Manifest exists" is never treated as "submitted" or "installable".
+
 | Platform | Repo surface | Distribution path | State |
 | --- | --- | --- | --- |
-| Agent Plugins / Cursor | `plugin.json` + `mcp.json` + `skills/` | Public repo can be submitted at `https://cursor.com/marketplace/publish` | READY_FOR_FORM |
-| xAI / Grok | `.grok-plugin/plugin.json` + `.mcp.json` | Official marketplace PR `xai-org/plugin-marketplace#503` pins `c40fcd4dd763a14ee9b3601a8315fef58a66a40a` | SUBMITTED_EXTERNAL_REVIEW — DO NOT DUPLICATE |
-| Claude Code | `.claude-plugin/plugin.json` + `.mcp.json` + `skills/` | Direct/plugin compatibility; community directory submission is an external form | READY_FOR_FORM |
-| OpenAI / Codex workspace import | `.claude-plugin/plugin.json` and public Git repository | Import GitHub plugin/marketplace into a workspace | READY_FOR_IMPORT |
-| GitHub Copilot CLI | root `plugin.json` | `copilot plugin install NeuruhAI/neuruh-sovereign-agent-starter` | READY_DIRECT |
-| Generic MCP clients | `mcp.json` / `.mcp.json` | stdio `python3 -m neuruh_sovereign_agent_starter.mcp_server` after install | READY_DIRECT |
-| Official MCP Registry | package-backed server registration | Requires a registry-verifiable package or remote server; GitHub-only pip dependency path is not enough for the public registry | BLOCKED_ON_PACKAGE_PUBLICATION |
-| PyPI | `pyproject.toml` | Publish package, ideally with trusted publishing | NOT_PUBLISHED |
+| Generic MCP clients | `mcp.json` / `.mcp.json` | stdio `python3 -m neuruh_sovereign_agent_starter.mcp_server` after install | **LIVE** — clean-room install from the published tag completes `initialize` → `tools/list` → `tools/call` over MCP's newline-delimited stdio framing |
+| Claude Code | `.claude-plugin/marketplace.json` + `.claude-plugin/plugin.json` + `.mcp.json` + `skills/` | `/plugin marketplace add NeuruhAI/neuruh-sovereign-agent-starter` | **INSTALLABLE** — the marketplace manifest this needs is now present; before `v0.1.9-alpha` the repo had only a plugin manifest and could not be added |
+| xAI / Grok | `.grok-plugin/plugin.json` + `.mcp.json` | Official marketplace PR [`xai-org/plugin-marketplace#503`](https://github.com/xai-org/plugin-marketplace/pull/503), pinned to `9a9a5329805f94ca5f8833f17873e87f076cb4f0` | **SUBMITTED — AWAITING EXTERNAL REVIEW.** Not accepted, not live. **DO NOT DUPLICATE** |
+| Agent Plugins / Cursor | `plugin.json` + `mcp.json` + `skills/` | Public repo submitted at `https://cursor.com/marketplace/publish` | **BLOCKED_EXTERNAL_FORM** — a web form under a founder account; nothing in this repo can complete it |
+| OpenAI / Codex workspace import | `.claude-plugin/plugin.json` + public Git repository | Import the public GitHub repo into a workspace | **READY_FOR_IMPORT** — repo is public and manifest-complete; the import happens in the consumer's workspace, so there is nothing here to submit |
+| GitHub Copilot CLI | root `plugin.json` | `copilot plugin install NeuruhAI/neuruh-sovereign-agent-starter` | **READY_UNVERIFIED** — the manifest is in place, but the Copilot CLI is not installed on the build host, so this repo has never actually run that command. Do not claim it works until someone runs it |
+| PyPI | `pyproject.toml` | Publish the package | **BLOCKED_ON_PACKAGE_RESTRUCTURE** — see below. Not merely "unpublished" |
+| Official MCP Registry | package-backed server registration | Registry publisher flow | **BLOCKED_ON_PACKAGE_PUBLICATION** — the registry wants a registry-verifiable package or remote server, which depends on the PyPI blocker below |
+
+### Why PyPI is blocked by structure, not by credentials
+
+All six dependencies are declared as direct VCS URLs:
+
+```
+Requires-Dist: neuruh-agent-run-manifest @ git+https://github.com/NeuruhAI/...
+Requires-Dist: neuruh-agent-receipt      @ git+https://github.com/NeuruhAI/...
+Requires-Dist: neuruh-governed-exec      @ git+https://github.com/NeuruhAI/...
+Requires-Dist: neuruh-policy-gate        @ git+https://github.com/NeuruhAI/...
+Requires-Dist: neuruh-capability-registry @ git+https://github.com/NeuruhAI/...
+Requires-Dist: neuruh-inference-health   @ git+https://github.com/NeuruhAI/...
+```
+
+PyPI refuses any distribution whose metadata declares a direct URL dependency, so a built wheel of
+this package cannot be uploaded as-is even with valid credentials. None of the six dependencies is
+on PyPI either (all return 404), so the unblock path is:
+
+1. publish the six Neuruh Public Commons dependencies to PyPI, then
+2. replace the `git+https` pins with ordinary version specifiers, then
+3. publish this package and verify a clean-room `pip install` from the index.
+
+An API token alone does not unblock it. Getting a token first would only produce a rejected upload.
 
 ## Submission packet — Cursor Marketplace
 
@@ -71,7 +97,22 @@ Suggested copy:
 
 ## xAI marketplace rule
 
-Do not create a second submission while `xai-org/plugin-marketplace#503` is open. That PR already points to the official `NeuruhAI` source and pins the reviewed `0.1.7-alpha` compatibility commit. New public releases can proceed independently without moving the source SHA under an active external review.
+Do not create a second submission while [`xai-org/plugin-marketplace#503`](https://github.com/xai-org/plugin-marketplace/pull/503)
+is open. That PR points at the official `NeuruhAI` source and is the single entry for this plugin.
+
+It is currently pinned to `9a9a5329805f94ca5f8833f17873e87f076cb4f0` (`v0.1.9-alpha`). The pin was
+moved from `c40fcd4` on 2026-09-02 because that commit's MCP server framed stdio messages LSP-style
+and could not complete a handshake with any MCP client, so the reviewed candidate would have shipped
+unusable. xAI's `CONTRIBUTING.md` states the update path explicitly: *"To update a live plugin, bump
+the `sha` (remote) … and regenerate the index — don't open a parallel duplicate entry."* Only
+`source.sha` changed; the index was regenerated with their `scripts/generate-plugin-index.py`, both
+their validators pass, and the declared components are byte-identical.
+
+**The submission is not accepted and not live in the marketplace.** It is awaiting external review.
+Do not describe it otherwise anywhere public.
+
+Routine new releases do not need to move the pin. Move it only for a defect that would ship broken,
+and say why in the PR.
 
 ## Release discipline
 
