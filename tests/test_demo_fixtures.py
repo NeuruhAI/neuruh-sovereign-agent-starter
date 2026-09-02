@@ -211,8 +211,8 @@ class PublicProofCardFileTests(unittest.TestCase):
 class VersionSurfaceTests(unittest.TestCase):
     def test_plugin_and_mcp_server_versions_match_this_release(self):
         plugin = json.loads((ROOT / "plugin.json").read_text(encoding="utf-8"))
-        self.assertEqual(plugin["version"], "0.1.7-alpha")
-        self.assertEqual(SERVER_VERSION, "0.1.7-alpha")
+        self.assertEqual(plugin["version"], "0.1.8-alpha")
+        self.assertEqual(SERVER_VERSION, "0.1.8-alpha")
 
     def test_handoff_skill_exists_and_state_diff_has_no_skill(self):
         self.assertTrue((ROOT / "skills/neuruh-handoff-pack/SKILL.md").is_file())
