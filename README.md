@@ -2,235 +2,179 @@
 
 [![ci](https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/actions/workflows/ci.yml)
 
-Public micro-plugin CLIs (and a local Agent Plugin) plus a runnable governed-exec starter composed from Neuruh Public Commons libraries. This is not Neuruh Core.
+**Public-safe agent operations utilities for bounded context, economical routing, clean handoffs, and proof you can verify.**
 
-**Stranger path (install + three demos in under 60 seconds):** [`QUICKSTART.md`](QUICKSTART.md)
+AI workers are useful. The missing layer is everything around the worker: what context it receives, what route deserves resources, what changed since the last run, what gets handed to the next worker, and what evidence is safe to publish afterward.
 
-## Public micro-plugins
+This repository exposes a small public subset of that operating layer. It is **not Neuruh Core** and contains no private runtime authority, customer data, proprietary scoring, production connectors, private prompts, or internal topology.
 
-| CLI | What it does |
+## The five utilities
+
+| CLI | Job |
 | --- | --- |
-| `neuruh-context-pack` | Bounded execution packet. Unknown keys dropped. Transcript/chat refused. |
-| `neuruh-cheap-route` | Cheapest candidate above a success floor. |
-| `neuruh-proof-card` | Public allowlist projection. Private junk omitted. |
-| `neuruh-state-diff` | Structural before/after delta. CLI only. |
-| `neuruh-handoff-pack` | Form A continuation packet from `previous.json` + `current.json`. CLI + skill; not MCP. |
+| `neuruh-context-pack` | Compile a bounded execution packet instead of replaying an entire chat. Unknown keys drop; transcript/chat keys refuse. |
+| `neuruh-cheap-route` | Choose the cheapest capable route above a declared success floor. |
+| `neuruh-proof-card` | Project an internal-looking record through an explicit public allowlist. |
+| `neuruh-state-diff` | Compute deterministic added / removed / changed paths between two public states. |
+| `neuruh-handoff-pack` | Create a bounded continuation packet from previous + current state with a derived delta. |
 
-MCP tools (exactly three): `context_pack`, `cheap_route`, `proof_card`. Handoff has a skill, not an MCP tool. State-diff is CLI-only (no skill). See [`MICRO_PLUGINS.md`](MICRO_PLUGINS.md). Grok/xAI marketplace reads `.grok-plugin/plugin.json` and `.mcp.json`; Cursor Agent Plugin still uses root `plugin.json` + `mcp.json`.
+Three functions are also exposed as stdio MCP tools:
 
-### Tagged install
+`context_pack` · `cheap_route` · `proof_card`
 
-Live tag until this docs release: `v0.1.6-alpha`. After merge, switch to `v0.1.7-alpha`. PyPI 404; Git tag is the install path.
+Handoff is a CLI + skill. State diff remains CLI-only.
 
-```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install "neuruh-sovereign-agent-starter @ git+https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git@v0.1.6-alpha"
-# after this PR's release, switch the tag to v0.1.7-alpha
+## Why this exists
+
+```text
+bloated state      -> context-pack  -> bounded packet
+candidate routes   -> cheap-route   -> selected route
+internal receipt   -> proof-card    -> public-safe proof
+before / after     -> state-diff    -> explicit delta
+previous + current -> handoff-pack  -> next-worker packet
 ```
 
-Or clone the tag and `pip install .` (needed for `examples/demos/`):
+The point is deliberately boring: **the model should not also be your memory format, routing policy, handoff protocol, and proof system.**
+
+## Install
+
+Python 3.11+.
+
+Tagged source install:
 
 ```bash
-git clone --branch v0.1.6-alpha --depth 1 https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git
+git clone --branch v0.1.8-alpha --depth 1 https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git
 cd neuruh-sovereign-agent-starter
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install .
 ```
 
-### Three demos
+Pip directly from the immutable Git tag:
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install "neuruh-sovereign-agent-starter @ git+https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git@v0.1.8-alpha"
+```
+
+No account or API key is required. Install needs network access for the pinned public GitHub dependencies; the micro-plugin transforms and default example run make no runtime network calls.
+
+PyPI is not yet the canonical install path.
+
+## 60-second proof
+
+A tagged checkout contains synthetic demo files:
 
 ```bash
 neuruh-context-pack examples/demos/bloated-mission.synthetic.json
-# -> mission_id DEMO-A; ignored_blob absent
+# bounded packet; ignored_blob absent
 
 neuruh-cheap-route examples/demos/three-routes.synthetic.json --min-success 0.8
-# -> candidate_id deterministic-l0, layer L0
+# deterministic-l0 wins over unnecessary higher layers
 
 neuruh-proof-card examples/demos/internal-receipt-junk.synthetic.json
-# -> status PASS; private_recipe / prompt / transcript omitted
+# PASS; private_recipe / prompt / transcript omitted
+
+neuruh-state-diff examples/handoff-previous.synthetic.json examples/handoff-current.synthetic.json
+
+neuruh-handoff-pack examples/handoff-previous.synthetic.json examples/handoff-current.synthetic.json
+# parent_mission_id + derived changed_since_last_run
 ```
 
-## Governed-exec starter
+For exact expected shapes and refusal cases, use [`QUICKSTART.md`](QUICKSTART.md).
 
-A runnable reference agent composed from the Neuruh Public Commons libraries.
+## Plugin / agent-environment compatibility
 
-It demonstrates a governed run in which model output is evidence, never command authority:
+The repository carries multiple public manifests around one implementation rather than cloning the logic per platform:
+
+| Environment | Surface |
+| --- | --- |
+| Agent Plugins / Cursor | `plugin.json`, `mcp.json`, `skills/` |
+| xAI / Grok | `.grok-plugin/plugin.json`, `.mcp.json` |
+| Claude-compatible plugin consumers | `.claude-plugin/plugin.json`, `.mcp.json`, `skills/` |
+| OpenAI / Codex workspace GitHub import | public repository + Claude-compatible plugin surface |
+| GitHub Copilot CLI | root Agent Plugin manifest |
+| Generic MCP clients | stdio `python3 -m neuruh_sovereign_agent_starter.mcp_server` |
+
+See [`DISTRIBUTION.md`](DISTRIBUTION.md) for current submission state, exact marketplace copy, external-review boundaries, and the package/registry next gates.
+
+### Generic stdio MCP
+
+After installation:
+
+```json
+{
+  "mcpServers": {
+    "neuruh-public-micro-plugins": {
+      "command": "python3",
+      "args": ["-m", "neuruh_sovereign_agent_starter.mcp_server"]
+    }
+  }
+}
+```
+
+The source-tree plugin copies use `PYTHONPATH=${PLUGIN_ROOT}/src`; a normal pip-installed invocation does not.
+
+## Four skills
+
+- `neuruh-context-pack`
+- `neuruh-cheap-route`
+- `neuruh-proof-card`
+- `neuruh-handoff-pack`
+
+There is intentionally no `neuruh-state-diff` skill. State diff stays a direct utility.
+
+## Governed-exec reference starter
+
+The repository also includes a bounded reference composition showing a larger principle: **model output is evidence, not command authority.**
 
 ```text
 mission
   -> capability registry
   -> policy gate
-  -> inference health / optional loopback model call
+  -> inference health / optional loopback observation
   -> exact predeclared execution binding
   -> governed exec
-  -> evidence + Agent Receipt chain
-  -> sealed Agent Run Manifest
+  -> hash-chained receipts
+  -> sealed run manifest
 ```
 
-## Requirements
-
-Python 3.11 or newer. No API key, no account, and no model server.
-
-Installing needs network access to fetch the pinned dependencies from GitHub. The example run itself makes no network calls.
-
-## Install
-
-```bash
-git clone --branch v0.1.6-alpha --depth 1 https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git
-cd neuruh-sovereign-agent-starter
-python -m venv .venv
-source .venv/bin/activate
-pip install .
-```
-
-Use `--branch v0.1.7-alpha` after this docs release is tagged. Cloning `HEAD`/`main` is not the stranger path.
-
-Installing pulls each dependency from an immutable public tag; nothing resolves to a
-branch or a local path.
-
-| Component | Pinned release |
-| --- | --- |
-| [`neuruh-capability-registry`](https://github.com/NeuruhAI/neuruh-capability-registry) | `v0.1.2-alpha` |
-| [`neuruh-policy-gate`](https://github.com/NeuruhAI/neuruh-policy-gate) | `v0.1.2-alpha` |
-| [`neuruh-inference-health`](https://github.com/NeuruhAI/neuruh-inference-health) | `v0.1.2-alpha` |
-| [`neuruh-governed-exec`](https://github.com/NeuruhAI/neuruh-governed-exec) | `v0.1.2-alpha` |
-| [`neuruh-agent-receipt`](https://github.com/NeuruhAI/agent-receipt) | `v0.1.2-alpha` |
-| [`neuruh-agent-run-manifest`](https://github.com/NeuruhAI/neuruh-agent-run-manifest) | `v0.1.2-alpha` |
-
-## Run the local example
-
-The example does not require a model or API key. It executes one exact `/usr/bin/printf`
-command declared in the configuration:
+Run the synthetic example:
 
 ```bash
 neuruh-sovereign-agent examples/starter.synthetic.json --out-dir run-output
 ```
 
-Expected output:
-
-```text
-RUN COMPLETED: run-...
-MANIFEST: run-output/manifest.json
-RECEIPTS: run-output/receipts.jsonl
-```
-
-Independently verify the artifacts with the two verifiers, which know nothing about this
-starter:
+Then independently verify the artifacts:
 
 ```bash
 neuruh-agent-run-manifest validate run-output/manifest.json
 neuruh-agent-receipt verify run-output/receipts.jsonl
 ```
 
-Expected output:
+The example uses an exact operator-declared `/usr/bin/printf` binding. A model is not required. If local inference is enabled, its output is recorded as an observation and still cannot choose the command.
 
-```text
-VALID run-... sha256:...
-PASS: 3 receipts
-TIP: ...
-```
+## What the starter enforces
 
-The sealed manifest records the version of every component that actually ran, read from
-installed distribution metadata rather than hard-coded, so a manifest can be matched back
-to the exact releases that produced it.
+- capability and argument validation before policy or execution;
+- `DENY` / `ESCALATE` stop before execution;
+- exact executable + argument binding;
+- working-directory containment inside the configured sandbox;
+- model output cannot rewrite the execution binding;
+- hash-chained receipt evidence;
+- a sealed run manifest with the installed component versions that actually ran.
 
-For local inference, set `inference.required` to `true`, provide a loopback
-OpenAI-compatible backend, and add a prompt. Remote inference endpoints are rejected at the
-configuration boundary — see `examples/ollama-openai-local.synthetic.json`.
+This is a reference composition, not a container or general sandbox. An operator who explicitly configures a dangerous command has declared that command. Read [`PUBLIC_PRIVATE_BOUNDARY.md`](PUBLIC_PRIVATE_BOUNDARY.md) and [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
-## What just happened
+## Release and evidence discipline
 
-The run produced two artifacts. Both are readable, and neither depends on trusting the
-agent that wrote them.
+`main` CI tests Python 3.11 / 3.12 / 3.13. Release automation only publishes after successful same-repository **push** CI on `main`; a successful pull-request run is not release authority.
 
-`receipts.jsonl` is a hash-chained ledger, one JSON object per line:
-
-| `seq` | `receipt_type` | `authority` | Records |
-| --- | --- | --- | --- |
-| 0 | `decision` | `governance-decision` | the policy gate returned `allow`, with the policy version derived from the policy content itself |
-| 1 | `observation` | `observation` | the inference health probe result — here `unavailable`, because nothing was listening on the loopback backend |
-| 2 | `execution` | `execution-evidence` | the exact command that ran and the digest of its output |
-
-Each entry carries `prev_hash` and `entry_hash`. Entry 0 chains from a fixed genesis
-constant, entry 1 chains from entry 0, entry 2 from entry 1. That is what `verify` walks.
-
-`manifest.json` seals the run: mission, inputs, decisions, executions, evidence, the
-receipt tip, and a `manifest_digest` over the whole thing. Its `components` list is read
-from installed distribution metadata rather than hard-coded, so it records the exact
-released version of everything that actually ran:
-
-```json
-[
-  {"name": "neuruh-agent-run-manifest",      "version": "0.1.2a0"},
-  {"name": "neuruh-agent-receipt",           "version": "0.1.2a0"},
-  {"name": "neuruh-governed-exec",           "version": "0.1.2a0"},
-  {"name": "neuruh-policy-gate",             "version": "0.1.2a0"},
-  {"name": "neuruh-capability-registry",     "version": "0.1.2a0"},
-  {"name": "neuruh-inference-health",        "version": "0.1.2a0"},
-  {"name": "neuruh-sovereign-agent-starter", "version": "0.1.1a0"}
-]
-```
-
-The tamper evidence is not a claim. Change one field in the ledger and re-verify:
-
-```bash
-python - <<'EOF'
-from pathlib import Path
-p = Path("run-output/receipts.jsonl")
-p.write_text(p.read_text().replace('"decision": "allow"', '"decision": "deny"', 1))
-EOF
-neuruh-agent-receipt verify run-output/receipts.jsonl
-```
-
-```text
-FAIL: entry hash mismatch
-```
-
-Exit status 1. Re-run the agent to regenerate a clean ledger.
-
-Note what the model did *not* do. `inference.required` is `false` in this example, so no
-model was consulted at all — and the run still completed, because the command came from
-`execution_binding` in the configuration, not from a model. Turning inference on adds an
-observation receipt. It does not add a way to choose the command.
-
-## What the run enforces
-
-- capability and argument validation happens before policy or execution;
-- `DENY` and `ESCALATE` return before any model probe or command;
-- only an exact operator-declared executable and argument tuple can run;
-- working directories must resolve inside the configured sandbox;
-- model output is recorded as evidence and cannot alter the command;
-- the run writes a tamper-evident receipt ledger and sealed manifest.
-
-## API
-
-| Name | Purpose |
-| --- | --- |
-| `StarterConfig.from_mapping(raw)` | Parse and fail-closed validate a run configuration. |
-| `run(config, *, probe=..., infer=..., run_id=..., now=...)` | Execute one governed run; returns a `StarterRunResult`. |
-| `StarterRunResult` | `manifest`, `receipts`, `decision`, `execution`, `inference_output`. |
-| `openai_compatible_infer` | Optional loopback-only inference callable. |
-| `StarterError(code, message)` | `E_CONFIG`, `E_CAPABILITY_KIND`, `E_BINDING`, `E_INFERENCE`, `E_INFERENCE_ENDPOINT`. |
-| `SCHEMA_VERSION` | `neuruh.sovereign-agent-starter.v0.1`. |
-
-## Test
-
-```bash
-python -m unittest discover -s tests -v
-```
+Historical proof cards remain bound to the releases they describe. Do not rewrite a historical proof card simply because the package advances.
 
 ## Safety boundary
 
-This is a bounded reference composition, not the Neuruh production runtime. It is not AXON,
-AEGIS/IAR, Governance Core, Mother/Father, LandOS, Recipe Engine or DeedSonar. It contains
-no production authority topology, private policies, proprietary scoring, production
-connectors, private prompts, customer data or Neuruh routing intelligence.
-
-The starter enforces its guarantees at the configuration and composition boundary. It is
-not a sandbox or a container: an operator who declares a dangerous command in the config
-gets that command. See [`PUBLIC_PRIVATE_BOUNDARY.md`](PUBLIC_PRIVATE_BOUNDARY.md),
-[`ARCHITECTURE.md`](ARCHITECTURE.md), and the
-[Neuruh Public Commons boundary](https://github.com/NeuruhAI/public-commons/blob/main/PUBLIC_PRIVATE_BOUNDARY.md).
+Public package only. No AXON internals, Mother internals, private Governance rules, Recipe Engine logic, DeedSonar data, customer information, proprietary ranking weights, private prompts, credentials, or production authority.
 
 ## License
 

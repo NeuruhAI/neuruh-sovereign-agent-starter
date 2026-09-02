@@ -1,7 +1,7 @@
 {
   "name": "neuruh-public-micro-plugins",
-  "version": "0.1.7-alpha",
-  "description": "Compile a bounded agent context packet, pick the cheapest capable execution route, and emit a public-safe proof card. Offline stdio MCP. No account, no API key.",
+  "version": "0.1.8-alpha",
+  "description": "Bound agent context, route work economically, hand off state cleanly, and publish proof safely. Offline stdio MCP; no account or API key.",
   "author": {
     "name": "Jeramie Hicks / Neuruh",
     "url": "https://github.com/NeuruhAI"

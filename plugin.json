@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "neuruh-public-micro-plugins",
-  "version": "0.1.7-alpha",
+  "version": "0.1.8-alpha",
   "description": "public-safe context pack, cheapest-capable route, and proof card. no private neuruh runtime.",
   "author": {
     "name": "Jeramie Hicks / Neuruh",
@@ -11,9 +11,12 @@
   "repository": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter",
   "license": "Apache-2.0",
   "keywords": [
+    "neuruh",
+    "agent-ops",
     "context-pack",
-    "cheap-route",
+    "handoff",
+    "routing",
     "proof-card",
-    "public"
+    "mcp"
   ]
 }

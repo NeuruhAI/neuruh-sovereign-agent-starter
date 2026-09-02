@@ -1,0 +1,11 @@
+{
+  "name": "neuruh-public-micro-plugins",
+  "description": "Public-safe agent operations utilities for bounded context, economic route selection, proof projection, state diffs, and clean handoffs. Offline stdio MCP; no account or API key.",
+  "author": {
+    "name": "Jeramie Hicks / Neuruh"
+  },
+  "homepage": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter",
+  "repository": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter",
+  "license": "Apache-2.0",
+  "version": "0.1.8-alpha"
+}
