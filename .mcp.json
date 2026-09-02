@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "neuruh-public-micro-plugins": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "-m",
+        "neuruh_sovereign_agent_starter.mcp_server"
+      ],
+      "env": {
+        "PYTHONPATH": "${PLUGIN_ROOT}/src"
+      },
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

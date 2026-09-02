@@ -16,7 +16,7 @@ Public micro-plugin CLIs (and a local Agent Plugin) plus a runnable governed-exe
 | `neuruh-state-diff` | Structural before/after delta. CLI only. |
 | `neuruh-handoff-pack` | Form A continuation packet from `previous.json` + `current.json`. CLI + skill; not MCP. |
 
-MCP tools (exactly three): `context_pack`, `cheap_route`, `proof_card`. Handoff has a skill, not an MCP tool. State-diff is CLI-only (no skill). See [`MICRO_PLUGINS.md`](MICRO_PLUGINS.md).
+MCP tools (exactly three): `context_pack`, `cheap_route`, `proof_card`. Handoff has a skill, not an MCP tool. State-diff is CLI-only (no skill). See [`MICRO_PLUGINS.md`](MICRO_PLUGINS.md). Grok/xAI marketplace reads `.grok-plugin/plugin.json` and `.mcp.json`; Cursor Agent Plugin still uses root `plugin.json` + `mcp.json`.
 
 ### Tagged install
 
