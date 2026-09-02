@@ -1,0 +1,29 @@
+{
+  "artifact": "neuruh-handoff-pack",
+  "commit_sha": "038e10549fb59d8fc505bda4ed7d78e439d489f6",
+  "generated_at": "2026-09-02T10:45:08.443371+00:00",
+  "limitations": [
+    "Thin composition of compile_context_packet and diff_public_state. Grants no mutation or production authority.",
+    "Derives pointer-heavy path deltas only. Refuses transcript/chat keys and nested private refs.",
+    "CLI plus skill. Not a fourth MCP tool and not the Neuruh production runtime.",
+    "v0.1.5-alpha shipped an envelope shape; this release replaces it with the Form A packet."
+  ],
+  "mission": "NEURUH-PUBLIC-RELEASE-001",
+  "mission_id": "NEURUH-PUBLIC-RELEASE-001",
+  "outcome": "APPROVED_FOR_PUBLIC_RELEASE",
+  "public_url": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/releases/tag/v0.1.6-alpha",
+  "status": "PASS",
+  "tests": {
+    "command": "python -m unittest discover -s tests -v",
+    "count": 64,
+    "main_ci": "PASS",
+    "matrix": [
+      "3.11",
+      "3.12",
+      "3.13"
+    ],
+    "pr_ci": "PASS",
+    "url": "https://github.com/NeuruhAI/neuruh-sovereign-agent-starter/actions/runs/33620882417"
+  },
+  "version": "v0.1.6-alpha"
+}
