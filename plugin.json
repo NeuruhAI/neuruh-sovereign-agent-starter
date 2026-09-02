@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "neuruh-public-micro-plugins",
   "version": "0.1.8-alpha",
-  "description": "Bound agent context, route work economically, hand off state cleanly, and publish proof safely. Offline stdio MCP; no account or API key.",
+  "description": "public-safe context pack, cheapest-capable route, and proof card. no private neuruh runtime.",
   "author": {
     "name": "Jeramie Hicks / Neuruh",
     "url": "https://github.com/NeuruhAI"
