@@ -135,6 +135,36 @@ cp -R . ~/.cursor/plugins/local/neuruh-public-micro-plugins
 
 Reload Cursor. The plugin should expose the four skills and MCP tools `context_pack`, `cheap_route`, `proof_card`.
 
+### Claude Code
+
+Two steps, in this order. The plugin install does not install the Python package, so the
+MCP server has nothing to import until you do.
+
+```bash
+# 1. install the package into the interpreter `python3` resolves to
+pip install "neuruh-sovereign-agent-starter @ git+https://github.com/NeuruhAI/neuruh-sovereign-agent-starter.git@v0.1.9-alpha"
+```
+
+```text
+# 2. in Claude Code
+/plugin marketplace add NeuruhAI/neuruh-sovereign-agent-starter
+/plugin install neuruh-public-micro-plugins@neuruh
+```
+
+This registers four skills and one MCP server. The skills work as soon as the plugin is
+installed. The MCP tools `context_pack`, `cheap_route` and `proof_card` need step 1: without
+it the server exits at import with `ModuleNotFoundError: No module named
+'neuruh_agent_run_manifest'` and the plugin lists zero tools.
+
+Verify the server independently before trusting the plugin surface:
+
+```bash
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"c","version":"1"}}}' \
+  | python3 -m neuruh_sovereign_agent_starter.mcp_server
+```
+
+A working install answers with a single line of JSON carrying `"serverInfo"`.
+
 ### Other clients
 
 The same implementation is projected through platform manifests instead of duplicated:

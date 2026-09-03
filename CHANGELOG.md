@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased — distribution truth
+
+Documentation, manifests and courts only. No package, tool, schema, or permission change,
+so the published `v0.1.9-alpha` artifact is untouched and stays the pinned release.
+
+- **Say what a Claude Code install actually gives you.** `/plugin marketplace add` then
+  `/plugin install` registers four skills and one MCP server, and the skills work
+  immediately — but the plugin install does not install the Python package. On an
+  interpreter without the six pinned dependencies the server exits at import with
+  `ModuleNotFoundError: No module named 'neuruh_agent_run_manifest'` and the plugin lists
+  zero tools. `DISTRIBUTION.md` and a new `QUICKSTART.md` section now give the two steps in
+  order, with a one-line handshake check.
+- **Stop the Claude manifests advertising five MCP tools.** Both `.claude-plugin`
+  descriptions listed all five operations and then said "Offline stdio MCP". The server
+  exposes three; state diff and handoff pack are CLIs, as `README.md` and
+  `MICRO_PLUGINS.md` already said correctly. Descriptions now match the code.
+- **Give the marketplace manifest its own description**, which `claude plugin validate`
+  warned was missing. It now validates with no warnings.
+- **Court it.** `ClaudeMarketplaceManifestTests` asserts the manifests name the real MCP
+  tool count, never sell the CLIs as MCP tools, agree with `SERVER_VERSION`, and keep the
+  marketplace description. Verified to fail before it passes: against the previous
+  manifests it fails three assertions. Suite is 95 tests.
+
 ## 0.1.9a0 — v0.1.9-alpha
 
 - **Fix the stdio MCP transport.** The server framed messages LSP-style with `Content-Length` headers. MCP's stdio transport is newline-delimited JSON, which is what every MCP client writes, so a spec-compliant client hung at `initialize` and no tool was ever reachable over the wire. `_read_message` now reads newline-delimited JSON, still accepts `Content-Length` framing from older callers, and `_write_message` replies in whichever framing the client used.

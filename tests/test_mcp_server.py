@@ -402,6 +402,69 @@ class PluginManifestTests(unittest.TestCase):
         self.assertNotIn("handoff_pack", names)
 
 
+class ClaudeMarketplaceManifestTests(unittest.TestCase):
+    """The Claude manifests are a distribution surface, and their prose is a claim.
+
+    v0.1.9-alpha shipped descriptions that listed all five operations and then said
+    "Offline stdio MCP", which reads as five MCP tools. The server exposes three; state
+    diff and handoff pack are CLIs. These assert the manifests cannot drift back.
+    """
+
+    COUNT_WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
+
+    def setUp(self):
+        self.marketplace = json.loads(
+            (ROOT / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8")
+        )
+        self.plugin = json.loads(
+            (ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
+        )
+        self.entry = self.marketplace["plugins"][0]
+
+    def test_marketplace_carries_its_own_description(self):
+        # `claude plugin validate` warns when this is absent.
+        self.assertTrue(self.marketplace.get("description", "").strip())
+
+    def test_marketplace_entry_is_installable_shape(self):
+        self.assertEqual(self.marketplace["name"], "neuruh")
+        self.assertEqual(self.entry["name"], "neuruh-public-micro-plugins")
+        self.assertEqual(self.entry["source"], "./")
+
+    def test_versions_agree_across_manifests(self):
+        from neuruh_sovereign_agent_starter.mcp_server import SERVER_VERSION
+
+        self.assertEqual(self.plugin["version"], SERVER_VERSION)
+
+    def test_descriptions_state_the_real_mcp_tool_count(self):
+        from neuruh_sovereign_agent_starter.mcp_server import TOOLS
+
+        word = self.COUNT_WORDS[len(TOOLS)]
+        for label, text in (
+            ("marketplace entry", self.entry["description"]),
+            ("plugin manifest", self.plugin["description"]),
+        ):
+            lowered = text.lower()
+            self.assertIn(
+                f"{word} stdio mcp tools",
+                lowered,
+                f"{label} must say how many stdio MCP tools it actually exposes",
+            )
+
+    def test_descriptions_do_not_sell_the_clis_as_mcp_tools(self):
+        for label, text in (
+            ("marketplace entry", self.entry["description"]),
+            ("plugin manifest", self.plugin["description"]),
+        ):
+            lowered = text.lower()
+            mentions_cli_only = "state diff" in lowered or "handoff" in lowered
+            if mentions_cli_only:
+                self.assertIn(
+                    "cli",
+                    lowered,
+                    f"{label} names state diff / handoff, which are CLIs, not MCP tools",
+                )
+
+
 class FixtureRoundtripTests(unittest.TestCase):
     def test_demo_module_uses_existing_functions_on_fixtures(self):
         from neuruh_sovereign_agent_starter.plugin_demo import main
