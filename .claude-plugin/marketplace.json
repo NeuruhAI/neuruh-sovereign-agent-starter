@@ -4,11 +4,12 @@
     "name": "Jeramie Hicks / Neuruh",
     "url": "https://github.com/NeuruhAI"
   },
+  "description": "Neuruh Public Commons micro-plugins: small, inspectable, offline agent-operations utilities for bounded context, economical routing, proof projection, state diffs and clean handoffs.",
   "plugins": [
     {
       "name": "neuruh-public-micro-plugins",
       "source": "./",
-      "description": "Public-safe agent operations: compile a bounded context packet, pick the cheapest capable route, project a public-safe proof card, diff public state, and build clean handoffs. Offline stdio MCP; no account or API key.",
+      "description": "Public-safe agent operations. Three stdio MCP tools: compile a bounded context packet, pick the cheapest capable route, and project a public-safe proof card. Four skills, plus CLIs for state diff and handoff packs. Offline after install; no account or API key.",
       "author": {
         "name": "Jeramie Hicks / Neuruh"
       },
